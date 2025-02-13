@@ -1,0 +1,35 @@
+name: Slack Notifications
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+    types: [opened, closed, reopened, synchronize]
+
+jobs:
+  slackNotification:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Send Slack notification for push
+        if: github.event_name == 'push'
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+        run: |
+          curl -X POST -H "Authorization: Bearer $SLACK_BOT_TOKEN" -H 'Content-type: application/json' --data '{
+            "channel": "#github-notifications",
+            "text": ":rocket: *New Commit Pushed!*\n*Repo:* `${{ github.repository }}`\n*Branch:* `${{ github.ref }}`\n*Commit:* `${{ github.sha }}`\n*Author:* `${{ github.actor }}`\n*Message:* `${{ github.event.head_commit.message }}`"
+          }' https://slack.com/api/chat.postMessage
+
+      - name: Send Slack notification for PR events
+        if: github.event_name == 'pull_request'
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+        run: |
+          curl -X POST -H "Authorization: Bearer $SLACK_BOT_TOKEN" -H 'Content-type: application/json' --data '{
+            "channel": "#github-notifications",
+            "text": ":git_pull_request: *Pull Request Update!*\n*Repo:* `${{ github.repository }}`\n*PR Title:* `${{ github.event.pull_request.title }}`\n*Action:* `${{ github.event.action }}`\n*PR URL:* `${{ github.event.pull_request.html_url }}`"
+          }' https://slack.com/api/chat.postMessage
