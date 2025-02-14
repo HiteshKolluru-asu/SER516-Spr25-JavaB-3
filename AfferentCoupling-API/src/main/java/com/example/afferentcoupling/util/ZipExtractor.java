@@ -1,52 +1,43 @@
 package com.example.afferentcoupling.util;
 
 import org.springframework.web.multipart.MultipartFile;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.HashSet;
-import java.util.Set;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
+import java.util.zip.ZipFile;
 
 public class ZipExtractor {
+    public static List<String> extractJavaFiles(MultipartFile file) throws IOException {
+        List<String> javaFiles = new ArrayList<>();
 
-    public static Set<String> extractJavaFiles(MultipartFile file) throws IOException {
-        Set<String> javaFiles = new HashSet<>();
-        try (ZipInputStream zis = new ZipInputStream(file.getInputStream())) {
-            ZipEntry entry;
-            while ((entry = zis.getNextEntry()) != null) {
+        // Convert MultipartFile to a temporary file
+        File tempFile = File.createTempFile("upload", ".zip");
+        file.transferTo(tempFile);  // Save MultipartFile to disk
+
+        try (ZipFile zipFile = new ZipFile(tempFile)) {
+            Enumeration<? extends ZipEntry> entries = zipFile.entries();
+
+            while (entries.hasMoreElements()) {
+                ZipEntry entry = entries.nextElement();
+                System.out.println("File: " + entry.getName() + ", Compression Method: " + entry.getMethod());
+
                 if (entry.getName().endsWith(".java")) {
-                    javaFiles.add(formatClassName(entry.getName()));
-                }
-            }
-        }
-        return javaFiles;
-    }
-
-    public static String readJavaFile(MultipartFile file, String targetClass) throws IOException {
-        StringBuilder content = new StringBuilder();
-        try (ZipInputStream zis = new ZipInputStream(file.getInputStream())) {
-            ZipEntry entry;
-            while ((entry = zis.getNextEntry()) != null) {
-                String className = formatClassName(entry.getName());
-                if (className.equals(targetClass)) {
-                    try (BufferedReader reader = new BufferedReader(new InputStreamReader(zis))) {
-                        String line;
-                        while ((line = reader.readLine()) != null) {
-                            content.append(line).append("\n");
-                        }
+                    InputStream is = zipFile.getInputStream(entry);
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
+                    StringBuilder fileContent = new StringBuilder();
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        fileContent.append(line).append("\n");
                     }
-                    break;
+                    javaFiles.add(fileContent.toString());
                 }
             }
+        } finally {
+            // Delete temporary file after processing
+            tempFile.delete();
         }
-        return content.toString();
-    }
 
-    private static String formatClassName(String filePath) {
-        filePath = filePath.replace("/", ".").replace(".java", "");
-        int index = filePath.indexOf("com.example");
-        return (index != -1) ? filePath.substring(index) : filePath;
+        return javaFiles;
     }
 }
