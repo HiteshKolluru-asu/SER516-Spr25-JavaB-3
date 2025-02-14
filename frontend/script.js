@@ -11,3 +11,8 @@ document.getElementById('submitAfferent').addEventListener('click', function() {
 document.getElementById('submitEfferent').addEventListener('click', function() {
     showResult('resultEfferent');
 });
+
+// Defect Density Button Click
+document.getElementById('submitDefect').addEventListener('click', function() {
+    showResult('resultDefect');
+});
