@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/coupling")
+@RequestMapping("/api/efferent-coupling")
 public class CouplingController {
     private final CouplingService couplingService;
 
