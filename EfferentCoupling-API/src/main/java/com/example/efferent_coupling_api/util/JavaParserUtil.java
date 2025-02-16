@@ -3,6 +3,7 @@ package com.example.efferent_coupling_api.util;
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.ImportDeclaration;
+import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -38,21 +39,37 @@ public class JavaParserUtil {
             if (cu == null) return;
 
             String packageName = cu.getPackageDeclaration().map(pd -> pd.getName().toString()).orElse("default");
-            couplingMap.putIfAbsent(packageName, new HashSet<>());
+
+            Optional<ClassOrInterfaceDeclaration> classDeclaration = cu.findFirst(ClassOrInterfaceDeclaration.class);
+            if (classDeclaration.isEmpty()) return;
+            
+            String className = classDeclaration.get().getNameAsString();
+            String fullClassName = packageName + "." + className;
+
+            couplingMap.putIfAbsent(fullClassName, new HashSet<>());
 
             for (ImportDeclaration importDecl : cu.getImports()) {
-                String importedPackage = importDecl.getName().toString();
-
-                if (!importedPackage.startsWith("java.") && !importedPackage.startsWith("javax.")) {
-                    couplingMap.get(packageName).add(importedPackage);
+                String importedClass = importDecl.getName().toString();
+                if (!importedClass.startsWith("java.") && !importedClass.startsWith("javax.")) {
+                    couplingMap.get(fullClassName).add(importedClass);
                 }
             }
 
-            cu.findAll(com.github.javaparser.ast.body.ClassOrInterfaceDeclaration.class).forEach(cls -> {
+            cu.findAll(ClassOrInterfaceDeclaration.class).forEach(cls -> {
+                cls.getExtendedTypes().forEach(extendedType -> {
+                    String extendedClass = extendedType.getNameAsString();
+                    couplingMap.get(fullClassName).add(packageName + "." + extendedClass);
+                });
+
+                cls.getImplementedTypes().forEach(implementedType -> {
+                    String implementedClass = implementedType.getNameAsString();
+                    couplingMap.get(fullClassName).add(packageName + "." + implementedClass);
+                });
+
                 cls.getAnnotations().forEach(annotation -> {
                     String annotationName = annotation.getNameAsString();
                     if (!annotationName.startsWith("java.") && !annotationName.startsWith("javax.")) {
-                        couplingMap.get(packageName).add(annotationName);
+                        couplingMap.get(fullClassName).add(annotationName);
                     }
                 });
             });
