@@ -28,6 +28,6 @@ use mv target/DefectDensityAPI{diffName}jar target/DefectDensityAPI.jar
 to rename for simple usage.
 
 Once running use the following URL
-http://localhost:8085/api/code-analysis/analyze [POST]
+http://localhost:8083/api/code-analysis/analyze [POST]
 variable name - 'file'
 expected input value - a zip file containing java code.
