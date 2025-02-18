@@ -12,6 +12,7 @@ import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
 @RestController
+@CrossOrigin(origins = "*") 
 @RequestMapping("/api/code-analysis")
 public class ZipController {
 
