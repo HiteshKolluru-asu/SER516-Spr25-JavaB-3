@@ -11,6 +11,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const file = fileInput.files[0];
       console.log("File received:", file);
 
+      callApiButton.disabled = true;
       const selectedOption = document.getElementById("apiSelect").value;
       let apiUrl = "";
 
@@ -26,6 +27,7 @@ document.addEventListener("DOMContentLoaded", () => {
               break;
           default:
               alert("Please select a valid API option.");
+              callApiButton.disabled = false;
               return;
       }
 
@@ -50,7 +52,10 @@ document.addEventListener("DOMContentLoaded", () => {
           console.error("Error calling API:", error);
           const resultDiv = document.getElementById("result");
           resultDiv.innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
-      }
+      } finally {
+        // Re-enable the button after the API call completes
+        callApiButton.disabled = false;
+    }
   });
 
   function displayResults(data, selectedOption) {
