@@ -1,40 +1,83 @@
-Running the application
+# DefectDensity-API
 
-to Run move to DefectDensity-API directory and then run
-mvn spring-boot:run
+This guide provides instructions on how to run the DefectDensity-API application both locally and using Docker.
 
-Once running use the following URL
-http://localhost:8083/api/code-analysis/analyze [POST]
-variable name - 'file'
-expected input value - a zip file containing java code.
+## Running the Application Locally
 
-.jar file must exist so use below command before building docker container
-mvn clean package 
+1. **Navigate to the Project Directory:**
+   ```bash
+   cd DefectDensity-API
+   ```
 
-to build docker container
+2. **Run the Application:**
+   ```bash
+   mvn spring-boot:run
+   ```
+
+3. **Access the API:**
+   Once the application is running, you can access the API using the following URL:
+   ```
+   http://localhost:8083/api/code-analysis/analyze [POST]
+   ```
+   - **Variable Name:** `file`
+   - **Expected Input Value:** A zip file containing Java code.
+
+## Building and Running with Docker
+
+### Prerequisites
+Ensure that the `.jar` file exists before building the Docker container. Use the following command to create the `.jar` file:
+```bash
+mvn clean package
+```
+
+### Building the Docker Container
+```bash
 docker build --no-cache -t defectdensity .
+```
 
-to run
+### Running the Docker Container
+```bash
 docker run --name defectdensity_container -p 8083:8083 -d defectdensity
+```
 
-to start the container
+### Starting the Container
+```bash
 docker start defectdensity_container
+```
 
-to stop the container
+### Stopping the Container
+```bash
 docker stop defectdensity_container
+```
 
-simply start container and ping local host
+### Using Custom Names for Docker Image and Container
 
-to build docker container
+#### Building the Docker Container with a Custom Name
+```bash
 docker build -t [DockerImageName]
+```
 
-to run
+#### Running the Docker Container with a Custom Name
+```bash
 docker run --name [DockerContainerName] -p 8083:8083 -d [DockerImageName]
+```
 
-to start the container
+#### Starting the Custom Named Container
+```bash
 docker start [DockerContainerName]
+```
 
-to stop the container
+#### Stopping the Custom Named Container
+```bash
 docker stop [DockerContainerName]
+```
 
+## Accessing the Application
+Once the container is running, you can access the application by pinging the local host:
+```
+http://localhost:8083
+```
 
+## testing curl command 
+curl -v -X POST "http://localhost:8083/api/code-analysis/analyze" -F "file=@\"[locationToFile]""
+example my personal - /Users/twisted_fate/Desktop/E-commerce-project-springBoot-master2 (1).zip\
