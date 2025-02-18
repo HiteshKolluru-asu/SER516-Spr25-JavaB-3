@@ -7,6 +7,11 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.Map;
 
+import org.springframework.web.bind.annotation.CrossOrigin;
+
+
+@CrossOrigin(origins = "*")
+
 @RestController
 @RequestMapping("/api/efferent-coupling")
 public class EfferentCouplingController {
