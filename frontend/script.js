@@ -1,13 +1,16 @@
-function showResult(resultId) {
-    document.getElementById(resultId).style.display = 'block';
-}
-
-// Afferent Coupling Button Click
-document.getElementById('submitAfferent').addEventListener('click', function() {
-    showResult('resultAfferent');
-});
-
-// Efferent Coupling Button Click
-document.getElementById('submitEfferent').addEventListener('click', function() {
-    showResult('resultEfferent');
-});
+document.addEventListener("DOMContentLoaded", () => {
+    const callApiButton = document.getElementById("callApiButton");
+  
+    callApiButton.addEventListener("click", () => {
+      const fileInput = document.getElementById("fileInput");
+  
+      if (!fileInput.files.length) {
+        alert("Please select a zip file.");
+        return;
+      }
+  
+      const file = fileInput.files[0];
+      console.log("File received:", file);
+  
+    });
+  });
