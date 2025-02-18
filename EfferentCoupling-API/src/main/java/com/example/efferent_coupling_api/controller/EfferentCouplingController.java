@@ -1,6 +1,6 @@
 package com.example.efferent_coupling_api.controller;
 
-import com.example.efferent_coupling_api.service.CouplingService;
+import com.example.efferent_coupling_api.service.EfferentCouplingService;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -9,10 +9,10 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/efferent-coupling")
-public class CouplingController {
-    private final CouplingService couplingService;
+public class EfferentCouplingController {
+    private final EfferentCouplingService couplingService;
 
-    public CouplingController(CouplingService couplingService) {
+    public EfferentCouplingController(EfferentCouplingService couplingService) {
         this.couplingService = couplingService;
     }
 
