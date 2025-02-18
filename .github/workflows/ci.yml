@@ -1,0 +1,36 @@
+name: CI/CD Pipeline 
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - '**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set Up JDK 21
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: maven
+
+      - name: Build with Maven
+        run: mvn clean package --file AfferentCoupling-API/pom.xml
+
+      - name: Run Unit Tests
+        run: mvn test --file AfferentCoupling-API/pom.xml
+
+      - name: Archive Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: afferent-coupling-api-jar
+          path: AfferentCoupling-API/target/*.jar
