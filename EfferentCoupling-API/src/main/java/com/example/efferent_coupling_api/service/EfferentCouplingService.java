@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.util.Map;
 
 @Service
-public class CouplingService {
+public class EfferentCouplingService {
     private static final String UPLOAD_DIR = "uploaded-codebases/";
 
     public Map<String, Integer> processZipFile(MultipartFile file) throws IOException {
