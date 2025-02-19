@@ -22,6 +22,28 @@ This guide provides instructions on how to run the Efferent Coupling API applica
    - **Variable Name:** `file`
    - **Expected Input Value:** A zip file containing Java code.
 
+## Testing the API using Postman
+
+1. Open Postman
+
+2. Select **POST** request
+
+3. Enter the API Endpoint:
+    ```bash
+    http://localhost:8082/api/efferent-coupling/upload
+    ```
+
+4. Go to the **"Body"** tab in Postman,Select **"form-data"**
+
+5. Add a new key with:
+    - **Key**: `file`
+    - **Type**: `File`
+    - **Value**: Upload the `test.zip` file.
+
+6. Ensure the Content-Type is set to `multipart/form-data`
+
+7. Send the Request and verify response
+
 ## Building and Running with Docker
 
 ### Prerequisites
