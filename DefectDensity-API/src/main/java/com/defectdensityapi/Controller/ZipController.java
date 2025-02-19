@@ -23,33 +23,26 @@ public class ZipController {
 
     private static final Logger logger = LoggerFactory.getLogger(ZipController.class);
 
-    // Precompile regex patterns for defect detection.
-    // Matches method calls where null is passed as an argument, e.g., object.method(null)
-    private static final Pattern PATTERN_NULL_METHOD_CALL = Pattern.compile("\\b\\w+\\s*\\.\\s*\\w+\\s*\\(\\s*null\\s*\\)");
+    // Refined regex patterns for defect detection:
+
     // Matches empty catch blocks, e.g., catch (Exception e) { }
     private static final Pattern PATTERN_EMPTY_CATCH = Pattern.compile("catch\\s*\\([^)]+\\)\\s*\\{\\s*\\}");
-    // Matches numeric literals, excluding trivial values like 0 and 1 (or -0 and -1)
-    private static final Pattern PATTERN_NUMERIC_LITERALS = Pattern.compile("\\b(?!-?[0-1]\\b)\\b-?\\d+\\b");
-    // Matches calls to System.out.println, often used for debugging
+    
+    // Matches method calls where null is passed as an argument, e.g., object.method(null)
+    private static final Pattern PATTERN_NULL_METHOD_CALL = Pattern.compile("\\b\\w+\\s*\\.\\s*\\w+\\s*\\(\\s*null\\s*\\)");
+    
+    // Matches calls to System.out.println, often left in for debugging
     private static final Pattern PATTERN_PRINTLN = Pattern.compile("System\\.out\\.println");
-    // Matches explicit type casting expressions, e.g., (Type) variable
-    private static final Pattern PATTERN_TYPE_CAST = Pattern.compile("\\([A-Za-z]+\\)\\s*\\w+");
-    // Matches string literals representing file paths (starting with '/' or '\')
-    private static final Pattern PATTERN_FILE_PATH = Pattern.compile("\"[/\\\\][^\"]+\"");
-    // Matches the keyword return
-    private static final Pattern PATTERN_RETURN = Pattern.compile("\\breturn\\b");
-    // Matches code blocks enclosed in curly braces { ... }
-    private static final Pattern PATTERN_CODE_BLOCK = Pattern.compile("\\{([^{}]|\\{[^{}]*\\})*\\}");
+    
+    // Matches TODO or FIXME comments indicating unfinished code
+    private static final Pattern PATTERN_TODO = Pattern.compile("\\b(?:TODO|FIXME)\\b");
 
+    // Array of refined defect patterns.
     private static final Pattern[] DEFECT_PATTERNS = new Pattern[]{
-            PATTERN_NULL_METHOD_CALL,
             PATTERN_EMPTY_CATCH,
-            PATTERN_NUMERIC_LITERALS,
+            PATTERN_NULL_METHOD_CALL,
             PATTERN_PRINTLN,
-            PATTERN_TYPE_CAST,
-            PATTERN_FILE_PATH,
-            PATTERN_RETURN,
-            PATTERN_CODE_BLOCK
+            PATTERN_TODO
     };
 
     @PostMapping("/analyze")
@@ -94,8 +87,7 @@ public class ZipController {
     }
 
     /**
-     * Processes the ZIP file and analyzes all Java files contained within.
-     * Uses a line-by-line approach for each Java file entry.
+     * Processes the ZIP file and analyzes all Java files contained within using a line-by-line approach.
      *
      * @param zipFile The ZIP file to analyze.
      * @return A map containing analysis results.
@@ -109,7 +101,6 @@ public class ZipController {
         try (ZipInputStream zis = new ZipInputStream(new FileInputStream(zipFile))) {
             ZipEntry entry;
             while ((entry = zis.getNextEntry()) != null) {
-                // Log every entry for debugging purposes.
                 logger.debug("Found entry: {}", entry.getName());
                 if (entry.isDirectory() || shouldSkipEntry(entry.getName())) {
                     logger.info("Skipping directory or unwanted entry: {}", entry.getName());
@@ -142,7 +133,7 @@ public class ZipController {
 
     /**
      * Determines whether a ZIP entry should be skipped.
-     * Adjust the filters as needed to ignore test, docs, build, or target directories.
+     * Adjust filters as needed to ignore test, docs, build, or target directories.
      *
      * @param entryName The name/path of the ZIP entry.
      * @return true if the entry should be skipped.
@@ -164,7 +155,6 @@ public class ZipController {
     private Map<String, Integer> analyzeEntry(ZipInputStream zis) throws IOException {
         int lines = 0;
         int defects = 0;
-        // Note: Do not close the reader since it will close the underlying ZipInputStream.
         BufferedReader reader = new BufferedReader(new InputStreamReader(zis));
         String line;
         while ((line = reader.readLine()) != null) {
@@ -194,7 +184,7 @@ public class ZipController {
     }
 
     /**
-     * Applies all defect regex patterns to a single line of code.
+     * Applies all refined defect regex patterns to a single line of code.
      *
      * @param line The code line.
      * @return The number of defect occurrences in the line.
