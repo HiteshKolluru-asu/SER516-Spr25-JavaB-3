@@ -17,10 +17,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
       switch (selectedOption) {
           case "afferent":
-              apiUrl = "http://localhost:8081/api/afferent-coupling/upload";
+              apiUrl = "http://localhost:8080/api/afferent-coupling/upload";
               break;
           case "efferent":
-              apiUrl = "http://localhost:8082/api/efferent-coupling/upload";
+              apiUrl = "http://localhost:8080/api/efferent-coupling/upload";
               break;
           case "defect":
               apiUrl = "http://localhost:8083/api/code-analysis/analyze";
