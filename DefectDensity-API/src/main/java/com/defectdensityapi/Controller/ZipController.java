@@ -45,7 +45,7 @@ public class ZipController {
             PATTERN_TODO
     };
 
-    @PostMapping("/analyze")
+    @PostMapping("/upload")
     public ResponseEntity<Map<String, Object>> analyzeCode(@RequestParam("file") MultipartFile zipFile) {
         File tempFile = null;
         try {

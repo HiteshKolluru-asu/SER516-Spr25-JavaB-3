@@ -23,7 +23,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 apiUrl = "http://localhost:8080/api/efferent-coupling/upload";
                 break;
             case "defect":
-                apiUrl = "http://localhost:8083/api/code-analysis/analyze";
+                apiUrl = "http://localhost:8080/api/code-analysis/upload";
                 break;
             default:
                 alert("Please select a valid API option.");
