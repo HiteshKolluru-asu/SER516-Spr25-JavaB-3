@@ -238,7 +238,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     }
-
+  
   function displayResultsAfferent(data, selectedOption, fileName) {
     const resultDiv = document.getElementById("result");
     resultDiv.innerHTML = `
