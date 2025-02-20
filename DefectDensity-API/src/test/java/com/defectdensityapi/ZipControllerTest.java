@@ -41,7 +41,7 @@ public class ZipControllerTest {
 
         MockMultipartFile file = new MockMultipartFile("file", "test.zip", "application/zip", zipBytes);
 
-        mockMvc.perform(MockMvcRequestBuilders.multipart("/api/code-analysis/analyze")
+        mockMvc.perform(MockMvcRequestBuilders.multipart("/api/code-analysis/upload")
                 .file(file))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalLinesOfCode").exists())
@@ -63,7 +63,7 @@ public class ZipControllerTest {
 
         MockMultipartFile file = new MockMultipartFile("file", "test.zip", "application/zip", zipBytes);
 
-        mockMvc.perform(MockMvcRequestBuilders.multipart("/api/code-analysis/analyze")
+        mockMvc.perform(MockMvcRequestBuilders.multipart("/api/code-analysis/upload")
                 .file(file))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalLinesOfCode").value(0))
@@ -77,7 +77,7 @@ public class ZipControllerTest {
         byte[] invalidZip = "Not a zip file".getBytes();
         MockMultipartFile file = new MockMultipartFile("file", "invalid.zip", "application/zip", invalidZip);
 
-        mockMvc.perform(MockMvcRequestBuilders.multipart("/api/code-analysis/analyze")
+        mockMvc.perform(MockMvcRequestBuilders.multipart("/api/code-analysis/upload")
                 .file(file))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").exists());
@@ -108,7 +108,7 @@ public class ZipControllerTest {
 
         MockMultipartFile file = new MockMultipartFile("file", "multiple.zip", "application/zip", zipBytes);
 
-        mockMvc.perform(MockMvcRequestBuilders.multipart("/api/code-analysis/analyze")
+        mockMvc.perform(MockMvcRequestBuilders.multipart("/api/code-analysis/upload")
                 .file(file))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalLinesOfCode").exists())

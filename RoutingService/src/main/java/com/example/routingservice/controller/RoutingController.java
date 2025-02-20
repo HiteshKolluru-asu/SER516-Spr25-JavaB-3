@@ -20,7 +20,7 @@ public class RoutingController {
 
     private static final String AFFERENT_COUPLING_API = "http://afferent-coupling-api:8081/api/afferent-coupling/upload";
     private static final String EFFERENT_COUPLING_API = "http://efferent-coupling-api:8082/api/efferent-coupling/upload";
-    private static final String DEFECT_DENSITY_API = "http://defect-density-api:8083/api/code-analysis/analyze";
+    private static final String DEFECT_DENSITY_API = "http://defect-density-api:8083/api/code-analysis/upload";
 
     @PostMapping("/{service}/upload")
     public ResponseEntity<String> routeMultipartRequest(
@@ -36,7 +36,7 @@ public class RoutingController {
             case "efferent-coupling":
                 targetUrl = EFFERENT_COUPLING_API;
                 break;
-            case "defect-density":
+            case "code-analysis":
                 targetUrl = DEFECT_DENSITY_API;
                 break;
             default:
