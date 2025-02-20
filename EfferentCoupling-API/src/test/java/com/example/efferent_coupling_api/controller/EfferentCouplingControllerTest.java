@@ -25,17 +25,15 @@ class EfferentCouplingControllerTest {
 
     @Test
     void testAnalyzeZipFile() throws Exception {
-        // Mocking a ZIP file upload
+
         MockMultipartFile file = new MockMultipartFile("file", "test.zip", "application/zip", new byte[]{});
 
         // Mocking service response
         Map<String, Integer> mockResponse = Collections.singletonMap("com.example.model.User", 2);
         when(couplingService.processZipFile(file)).thenReturn(mockResponse);
 
-        // Calling the controller method
         Map<String, Integer> result = couplingController.analyzeZipFile(file);
 
-        // Checking if the returned result matches the expected mock response
         assertEquals(mockResponse, result);
         verify(couplingService, times(1)).processZipFile(file);
     }

@@ -25,13 +25,12 @@ class EfferentCouplingServiceTest {
 
     @Test
     void testProcessZipFile() throws IOException {
-        // Creating a fake ZIP file
+
         MockMultipartFile file = new MockMultipartFile("file", "test.zip", "application/zip", new byte[]{});
 
         // Creating a temporary directory for extracted files
         File extractedDir = Files.createTempDirectory(tempDir, "extracted").toFile();
 
-        // Mocking the behavior of ZipExtractor and JavaParserUtil
         try (MockedStatic<ZipExtractor> zipMock = Mockito.mockStatic(ZipExtractor.class);
              MockedStatic<JavaParserUtil> parserMock = Mockito.mockStatic(JavaParserUtil.class)) {
 

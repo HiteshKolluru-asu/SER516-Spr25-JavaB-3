@@ -29,10 +29,8 @@ class JavaParserUtilTest {
         // Create a directory and store the Java file
         File repoDir = tempDir.toFile();
 
-        // Run efferent coupling analysis
         Map<String, Integer> result = JavaParserUtil.computeEfferentCoupling(repoDir);
 
-        // Validate the output
         assertEquals(1, result.get("com.example.model.User"));
     }
 }

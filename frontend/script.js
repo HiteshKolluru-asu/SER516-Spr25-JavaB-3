@@ -238,6 +238,133 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     }
+  
+  function displayResultsAfferent(data, selectedOption, fileName) {
+    const resultDiv = document.getElementById("result");
+    resultDiv.innerHTML = `
+      <h2>Afferent Coupling Analysis</h2>
+      <p><strong>File:</strong> ${fileName}</p>
+      <h3>Coupling Results:</h3>
+      <ul id="afferentList"></ul>
+      <canvas id="afferentChart" width="500" height="300"></canvas>
+    `;
+
+    // Fill the list
+    const afferentList = document.getElementById("afferentList");
+    for (const [className, count] of Object.entries(data)) {
+      const li = document.createElement("li");
+      li.textContent = `${className}: ${count}`;
+      afferentList.appendChild(li);
+    }
+
+    // Save & visualize
+    saveMetricsAfferent(data, fileName);
+    renderBenchmarkComparisonAfferent(fileName);
+  }
+
+
+  function renderBenchmarkComparisonAfferent(fileName) {
+    const allAfferent = JSON.parse(localStorage.getItem("afferentMetricsHistory")) || {};
+    const history = allAfferent[fileName];
+
+    if (!history || history.length === 0) {
+      document.getElementById("afferentChart").outerHTML =
+        "<p>No afferent coupling data found for this file.</p>";
+      return;
+    }
+
+    const allClassNames = new Set();
+    for (let snapshot of history) {
+      for (let className of Object.keys(snapshot.couplingData)) {
+        allClassNames.add(className);
+      }
+    }
+
+    const timestamps = history.map(h => h.timestamp);
+
+    const datasets = [];
+    [...allClassNames].forEach((className, index) => {
+      const dataPoints = history.map(snapshot => {
+        return snapshot.couplingData[className] || 0;
+      });
+      datasets.push({
+        label: className,
+        data: dataPoints,
+        borderColor: getColorByIndex(index),
+        backgroundColor: "transparent",
+        tension: 0.1,
+        borderWidth: 2
+      });
+    });
+
+    const ctx = document.getElementById("afferentChart").getContext("2d");
+
+    if (window.afferentChart instanceof Chart) {
+      window.afferentChart.destroy();
+    }
+
+    window.afferentChart = new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: timestamps,
+        datasets: datasets
+      },
+      options: {
+        responsive: true,
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              stepSize: 1
+            },
+            title: {
+              display: true,
+              text: "Coupling Value"
+            }
+          },
+          x: {
+            title: {
+              display: true,
+              text: "Time"
+            }
+          }
+        },
+        plugins: {
+            annotation: {
+              annotations: {
+                benchmarkLine: {
+                  type: "line",
+                  yMin: 5,  // benchmark value
+                  yMax: 5,
+                  borderColor: "red",
+                  borderWidth: 2,
+                  borderDash: [6, 6],
+                  label: {
+                    enabled: true,
+                    content: "Benchmark (Idealized Value)",
+                    position: "end",
+                    backgroundColor: "rgba(255, 255, 255, 0.7)",
+                    color: "red"
+                  }
+                }
+              }
+            },
+            legend: {
+              display: true
+            }
+          }
+      }
+    });
+  }
+
+  function getColorByIndex(index) {
+    const palette = [
+      "#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0",
+      "#9966FF", "#FF9F40", "#00A8A8", "#A8A800",
+      "#A800A8", "#0080FF", "#FF8000"
+    ];
+    return palette[index % palette.length];
+  }
 
 
   function displayResultsEfferent(data, selectedOption, fileName) {
