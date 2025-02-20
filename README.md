@@ -3,6 +3,7 @@
 # Software Quality Metrics
 
 This guide provides instructions on how to run the application both locally and using Docker.
+This project uses maven as its build tool. Specifically, we use Java SDK 21.
 
 **Key Details:**
 
@@ -15,7 +16,7 @@ This guide provides instructions on how to run the application both locally and 
 
 **How to Use:**
 
-## Running the Application Locally
+## Building and Running the Application
 
 1. **Navigate to the Project root Directory:**
    ```bash
@@ -36,4 +37,3 @@ This guide provides instructions on how to run the application both locally and 
    open frontend/index.html
    ```
     - **Expected Input Value:** A zip file containing Java code.
-
