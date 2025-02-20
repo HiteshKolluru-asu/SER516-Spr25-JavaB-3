@@ -47,7 +47,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const data = await response.json();
             console.log("API response:", data);
-            displayResults(data, selectedOption, file.name);
+
+            if (selectedOption === "afferent") {
+                // New function for afferent
+                displayResultsAfferent(data, selectedOption, file.name);
+            } else if (selectedOption === "efferent") {
+                // New function for efferent
+                displayResultsEfferent(data, selectedOption, file.name);
+            } else {
+                // The old function for defect analysis
+                displayResults(data, selectedOption, file.name);
+            }
+
         } catch (error) {
             console.error("Error calling API:", error);
             document.getElementById("result").innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
@@ -63,7 +74,6 @@ document.addEventListener("DOMContentLoaded", () => {
         // Get existing metrics object from localStorage, or fallback to {}
         let allMetrics = JSON.parse(localStorage.getItem("metricsHistory")) || {};
 
-        // If there's no array for this file, create it
         if (!allMetrics[fileName]) {
             allMetrics[fileName] = [];
         }
@@ -86,10 +96,41 @@ document.addEventListener("DOMContentLoaded", () => {
         localStorage.setItem("metricsHistory", JSON.stringify(allMetrics));
     }
 
+    function saveMetricsEfferent(data, fileName) {
+        let allEfferent = JSON.parse(localStorage.getItem("efferentMetricsHistory")) || {};
+        if (!allEfferent[fileName]) {
+          allEfferent[fileName] = [];
+        }
+        allEfferent[fileName].push({
+          timestamp: new Date().toLocaleString(),
+          fileName,
+          couplingData: data
+        });
+        if (allEfferent[fileName].length > 5) {
+          allEfferent[fileName].shift();
+        }
+        localStorage.setItem("efferentMetricsHistory", JSON.stringify(allEfferent));
+      }
+
+      function saveMetricsAfferent(data, fileName) {
+        let allAfferent = JSON.parse(localStorage.getItem("afferentMetricsHistory")) || {};
+        if (!allAfferent[fileName]) {
+          allAfferent[fileName] = [];
+        }
+        allAfferent[fileName].push({
+          timestamp: new Date().toLocaleString(),
+          fileName,
+          couplingData: data
+        });
+        if (allAfferent[fileName].length > 5) {
+          allAfferent[fileName].shift(); // keep last 5
+        }
+        localStorage.setItem("afferentMetricsHistory", JSON.stringify(allAfferent));
+      }
+
     function displayResults(data, selectedOption, fileName) {
         const resultDiv = document.getElementById("result");
 
-        // Convert defectDensity to a number before checking
         const numericDefectDensity = parseFloat(data.defectDensity) || 0;
         let category = "";
 
@@ -118,33 +159,30 @@ document.addEventListener("DOMContentLoaded", () => {
           <canvas id="benchmarkChart" width="500" height="300"></canvas>
         `;
 
-        // Save metrics in localStorage (keyed by fileName)
         saveMetrics(data, fileName);
 
-        // Render the chart from updated localStorage
         renderBenchmarkComparison(fileName);
     }
 
     function renderBenchmarkComparison(fileName) {
         const allMetrics = JSON.parse(localStorage.getItem("metricsHistory")) || {};
-    
+
         if (!allMetrics[fileName] || allMetrics[fileName].length === 0) {
-            document.getElementById("benchmarkChart").outerHTML = 
+            document.getElementById("benchmarkChart").outerHTML =
                 "<p>No previous data found for this file.</p>";
             return;
         }
-    
+
         const history = allMetrics[fileName];
         const timestamps = history.map(entry => entry.timestamp);
         const defectDensities = history.map(entry => entry.defectDensity);
-    
+
         const ctx = document.getElementById("benchmarkChart").getContext("2d");
-    
-        // Destroy old chart instance if it exists
+
         if (window.benchmarkChart instanceof Chart) {
             window.benchmarkChart.destroy();
         }
-    
+
         window.benchmarkChart = new Chart(ctx, {
             type: "bar",
             data: {
@@ -164,8 +202,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 scales: {
                     y: {
                         beginAtZero: true,
-                        // suggestedMax ensures the chart will expand if the data exceeds 20,
-                        // but if the data is below 10, we still show up to 20 to see the benchmark line.
                         suggestedMax: 20,
                         title: {
                             display: true,
@@ -180,7 +216,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     }
                 },
                 plugins: {
-                    // The annotation plugin is configured here
                     annotation: {
                         annotations: {
                             benchmarkLine: {
@@ -203,8 +238,140 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     }
-    
+
+
+  function displayResultsEfferent(data, selectedOption, fileName) {
+    const resultDiv = document.getElementById("result");
+    resultDiv.innerHTML = `
+      <h2>Efferent Coupling Analysis</h2>
+      <p><strong>File:</strong> ${fileName}</p>
+      <h3>Coupling Results:</h3>
+      <ul id="efferentList"></ul>
+      <canvas id="efferentChart" width="500" height="300"></canvas>
+    `;
+
+    // Fill the list
+    const efferentList = document.getElementById("efferentList");
+    for (const [className, count] of Object.entries(data)) {
+      const li = document.createElement("li");
+      li.textContent = `${className}: ${count}`;
+      efferentList.appendChild(li);
+    }
+
+    // Save & visualize
+    saveMetricsEfferent(data, fileName);
+    renderBenchmarkComparisonEfferent(fileName);
+  }
+
+  function renderBenchmarkComparisonEfferent(fileName) {
+    const allEfferent = JSON.parse(localStorage.getItem("efferentMetricsHistory")) || {};
+    const history = allEfferent[fileName];
+
+    if (!history || history.length === 0) {
+      const chartCanvas = document.getElementById("efferentChart");
+      if (chartCanvas) {
+        chartCanvas.outerHTML = "<p>No efferent coupling data found for this file.</p>";
+      }
+      return;
+    }
+
+    const allClassNames = new Set();
+    history.forEach(snapshot => {
+      Object.keys(snapshot.couplingData).forEach(className => allClassNames.add(className));
+    });
+
+    const timestamps = history.map(h => h.timestamp);
+
+    const datasets = [...allClassNames].map((className, idx) => {
+      // For each snapshot, get the coupling value or 0
+      const dataPoints = history.map(snapshot => snapshot.couplingData[className] || 0);
+      return {
+        label: className,
+        data: dataPoints,
+        borderColor: getColorByIndex(idx),
+        backgroundColor: "transparent",
+        borderWidth: 2,
+        tension: 0.1
+      };
+    });
+
+    // Build the chart
+    const ctx = document.getElementById("efferentChart").getContext("2d");
+
+    if (window.efferentChart instanceof Chart) {
+      window.efferentChart.destroy();
+    }
+
+    window.efferentChart = new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: timestamps,
+        datasets: datasets
+      },
+      options: {
+        responsive: true,
+        scales: {
+          x: {
+            title: {
+              display: true,
+              text: "Time"
+            }
+          },
+          y: {
+            beginAtZero: true,
+            ticks: {
+              stepSize: 1
+            },
+            title: {
+              display: true,
+              text: "Efferent Coupling Value"
+            }
+          }
+        },
+        plugins: {
+          annotation: {
+            annotations: {
+              benchmarkLine: {
+                type: "line",
+                yMin: 5,  //benchmark value
+                yMax: 5,
+                borderColor: "red",
+                borderWidth: 2,
+                borderDash: [6, 6],
+                label: {
+                  enabled: true,
+                  content: "Benchmark (Idealized Value)",
+                  position: "end",
+                  backgroundColor: "rgba(255, 255, 255, 0.7)",
+                  color: "red"
+                }
+              }
+            }
+          },
+          legend: {
+            display: true
+          }
+        }
+      }
+    });
+  }
+
+
+  function getColorByIndex(index) {
+    const palette = [
+      "#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0",
+      "#9966FF", "#FF9F40", "#00A8A8", "#A8A800",
+      "#A800A8", "#0080FF", "#FF8000"
+    ];
+    return palette[index % palette.length];
+  }
+
+
 });
 
+// console.log(JSON.parse(localStorage.getItem("afferentMetricsHistory")));
+// console.log(JSON.parse(localStorage.getItem("efferentMetricsHistory")));
 // console.log(JSON.parse(localStorage.getItem("metricsHistory")));
+// localStorage.removeItem("afferentMetricsHistory");
+// localStorage.removeItem("efferentMetricsHistory");
 // localStorage.removeItem("metricsHistory");
