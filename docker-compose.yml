@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  afferent-coupling-api:
+    build: ./AfferentCoupling-API
+    container_name: afferent-coupling-api  # Explicitly set container name
+    ports:
+      - "8081:8081"
+    networks:
+      - microservices-network
+
+  efferent-coupling-api:
+    build: ./EfferentCoupling-API
+    container_name: efferent-coupling-api  # Explicitly set container name
+    ports:
+      - "8082:8082"
+    networks:
+      - microservices-network
+
+  defect-density-api:
+    build: ./DefectDensity-API
+    container_name: defect-density-api  # Explicitly set container name
+    ports:
+      - "8083:8083"
+    networks:
+      - microservices-network
+
+  routing-service:
+    build: ./RoutingService
+    container_name: routing-service  # Explicitly set container name
+    ports:
+      - "8080:8080"
+    depends_on:
+      - afferent-coupling-api
+      - efferent-coupling-api
+      - defect-density-api
+    networks:
+      - microservices-network
+
+networks:
+  microservices-network:
+    driver: bridge
