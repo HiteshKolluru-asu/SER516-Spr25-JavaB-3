@@ -11,6 +11,7 @@ This guide provides instructions on how to run the application both locally and 
 * **Number of files saved on browser:** Maximum each file history is 5, it will hold only previous 5 entries.
 * **Benchmark value:** For Afferent coupling and Efferent coupling metric - 5
 * **Benchmark value:** For Defect Density metric - 10
+* **TestData:** Please use zip files inside TestData folder to test the application
 
 **How to Use:**
 
