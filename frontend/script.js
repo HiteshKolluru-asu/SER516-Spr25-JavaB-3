@@ -72,6 +72,11 @@ document.addEventListener("DOMContentLoaded", () => {
                     displayResults(defectResponse, file.name);
                     break;
 
+                default:
+                  alert("Please select a valid API option.");
+                  callApiButton.disabled = false;
+                  return;
+
             }
 
 
