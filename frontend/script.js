@@ -56,6 +56,22 @@ document.addEventListener("DOMContentLoaded", () => {
                     console.log("Combined API responses:", { afferentResponse, efferentResponse });
                     displayCombinedResults(afferentResponse, efferentResponse, file.name);
                     break;
+
+                case "afferent":
+                      afferentResponse = await fetch(afferentApiUrl, { method: "POST", body: formData }).then(res => res.json());
+                      displayResultsAfferent(afferentResponse, file.name);
+                      break;
+  
+                case "efferent":
+                    efferentResponse = await fetch(efferentApiUrl, { method: "POST", body: formData }).then(res => res.json());
+                    displayResultsEfferent(efferentResponse, file.name);
+                    break;
+
+                case "defect":
+                    defectResponse = await fetch(defectApiUrl, { method: "POST", body: formData }).then(res => res.json());
+                    displayResults(defectResponse, file.name);
+                    break;
+
             }
 
 
