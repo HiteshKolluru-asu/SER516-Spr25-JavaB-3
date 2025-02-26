@@ -13,51 +13,51 @@ document.addEventListener("DOMContentLoaded", () => {
 
         callApiButton.disabled = true;
         const selectedOption = document.getElementById("apiSelect").value;
-        let apiUrl = "";
+        let apiBaseUrl = "http://localhost:8080/api"
+        let afferentApiUrl = "${apiBaseUrl}/afferent-coupling/upload";
+        let efferentApiUrl = "${apiBaseUrl}/efferent-coupling/upload";
+        let defectApiUrl = "${apiBaseUrl}/code-analysis/upload";
 
-        switch (selectedOption) {
-            case "afferent":
-                apiUrl = "http://localhost:8080/api/afferent-coupling/upload";
-                break;
-            case "efferent":
-                apiUrl = "http://localhost:8080/api/efferent-coupling/upload";
-                break;
-            case "defect":
-                apiUrl = "http://localhost:8080/api/code-analysis/upload";
-                break;
-            default:
-                alert("Please select a valid API option.");
-                callApiButton.disabled = false;
-                return;
-        }
+        // switch (selectedOption) {
+        //     case "afferent":
+        //         apiUrl = "http://localhost:8080/api/afferent-coupling/upload";
+        //         break;
+        //     case "efferent":
+        //         apiUrl = "http://localhost:8080/api/efferent-coupling/upload";
+        //         break;
+        //     case "defect":
+        //         apiUrl = "http://localhost:8080/api/code-analysis/upload";
+        //         break;
+        //     default:
+        //         alert("Please select a valid API option.");
+        //         callApiButton.disabled = false;
+        //         return;
+        // }
 
         const formData = new FormData();
         formData.append("file", file);
 
         try {
-            const response = await fetch(apiUrl, {
-                method: "POST",
-                body: formData
-            });
 
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`HTTP ${response.status}: ${errorText}`);
+            // if (!response.ok) {
+            //     const errorText = await response.text();
+            //     throw new Error(`HTTP ${response.status}: ${errorText}`);
+            // }
+
+            let afferentResponse, efferentResponse, defectResponse;
+
+            switch (selectedOption) {
+                case "combined":
+                    // Fetch afferent and efferent APIs simultaneously
+                    [afferentResponse, efferentResponse] = await Promise.all([
+                        fetch(afferentApiUrl, { method: "POST", body: formData }).then(res => res.json()),
+                        fetch(efferentApiUrl, { method: "POST", body: formData }).then(res => res.json())
+                    ]);
+                    console.log("Combined API responses:", { afferentResponse, efferentResponse });
+                    displayCombinedResults(afferentResponse, efferentResponse, file.name);
+                    break;
             }
 
-            const data = await response.json();
-            console.log("API response:", data);
-
-            if (selectedOption === "afferent") {
-                // New function for afferent
-                displayResultsAfferent(data, selectedOption, file.name);
-            } else if (selectedOption === "efferent") {
-                // New function for efferent
-                displayResultsEfferent(data, selectedOption, file.name);
-            } else {
-                // The old function for defect analysis
-                displayResults(data, selectedOption, file.name);
-            }
 
         } catch (error) {
             console.error("Error calling API:", error);
