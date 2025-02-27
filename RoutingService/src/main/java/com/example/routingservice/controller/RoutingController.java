@@ -1,6 +1,8 @@
 package com.example.routingservice.controller;
 
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.*;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
@@ -8,7 +10,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.UriComponentsBuilder;
 import java.util.Map;
-import org.springframework.web.bind.annotation.CrossOrigin;
+import java.util.concurrent.CompletableFuture;
 
 @CrossOrigin(origins = "*")
 
@@ -23,10 +25,13 @@ public class RoutingController {
     private static final String DEFECT_DENSITY_API = "http://defect-density-api:8083/api/code-analysis/upload";
 
     @PostMapping("/{service}/upload")
-    public ResponseEntity<String> routeMultipartRequest(
+    @Async
+    public CompletableFuture<ResponseEntity<String>> routeMultipartRequest(
             @PathVariable String service,
-            @RequestPart("file") MultipartFile file
+            @RequestParam("file") MultipartFile file
     ) {
+        return CompletableFuture.supplyAsync(() -> {
+
         String targetUrl;
 
         switch (service.toLowerCase()) {
@@ -45,9 +50,15 @@ public class RoutingController {
         }
 
         try {
-        
+            ByteArrayResource fileResource = new ByteArrayResource(file.getBytes()) {
+                @Override
+                public String getFilename() {
+                    return file.getOriginalFilename();
+                }
+            };
+
             MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-            body.add("file", file.getResource());
+            body.add("file", fileResource);
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.MULTIPART_FORM_DATA);
@@ -58,5 +69,6 @@ public class RoutingController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error while forwarding multipart request: " + e.getMessage());
         }
+    });
     }
 }

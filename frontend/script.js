@@ -13,50 +13,72 @@ document.addEventListener("DOMContentLoaded", () => {
 
         callApiButton.disabled = true;
         const selectedOption = document.getElementById("apiSelect").value;
-        let apiUrl = "";
-
-        switch (selectedOption) {
-            case "afferent":
-                apiUrl = "http://localhost:8080/api/afferent-coupling/upload";
-                break;
-            case "efferent":
-                apiUrl = "http://localhost:8080/api/efferent-coupling/upload";
-                break;
-            case "defect":
-                apiUrl = "http://localhost:8080/api/code-analysis/upload";
-                break;
-            default:
-                alert("Please select a valid API option.");
-                callApiButton.disabled = false;
-                return;
-        }
+        let apiBaseUrl = "http://localhost:8080/api"
+        let afferentApiUrl = `${apiBaseUrl}/afferent-coupling/upload`;
+        let efferentApiUrl = `${apiBaseUrl}/efferent-coupling/upload`;
+        let defectApiUrl = `${apiBaseUrl}/code-analysis/upload`;
 
         const formData = new FormData();
         formData.append("file", file);
 
         try {
-            const response = await fetch(apiUrl, {
-                method: "POST",
-                body: formData
-            });
+            // if (!response.ok) {
+            //     const errorText = await response.text();
+            //     throw new Error(`HTTP ${response.status}: ${errorText}`);
+            // }
 
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`HTTP ${response.status}: ${errorText}`);
-            }
+            let afferentResponse, efferentResponse, defectResponse;
 
-            const data = await response.json();
-            console.log("API response:", data);
+            switch (selectedOption) {
+                case "combined":
 
-            if (selectedOption === "afferent") {
-                // New function for afferent
-                displayResultsAfferent(data, selectedOption, file.name);
-            } else if (selectedOption === "efferent") {
-                // New function for efferent
-                displayResultsEfferent(data, selectedOption, file.name);
-            } else {
-                // The old function for defect analysis
-                displayResults(data, selectedOption, file.name);
+                    const afferentFormData = new FormData();
+                    afferentFormData.append("file", file);
+
+                    const efferentFormData = new FormData();
+                    efferentFormData.append("file", file);
+
+                    [afferentResponse, efferentResponse] = await Promise.all([
+                      fetch(afferentApiUrl, {
+                          method: "POST",
+                          body: afferentFormData,
+                          headers: { "Accept": "application/json" }
+                      }).then(res => res.json()),
+
+                      fetch(efferentApiUrl, {
+                          method: "POST",
+                          body: efferentFormData,
+                          headers: { "Accept": "application/json" }
+                      }).then(res => res.json())
+                  ]);
+                  console.log("Combined API responses:", { afferentResponse, efferentResponse });
+                  displayCombinedResults(afferentResponse, efferentResponse, file.name);
+
+                  const instabilityValue = calculateInstability(file.name);
+                  saveMetricsInstability(instabilityValue, file.name);
+                  displayInstabilityResults(instabilityValue, file.name);
+
+                  break;
+
+                case "afferent":
+                      afferentResponse = await fetch(afferentApiUrl, { method: "POST", body: formData }).then(res => res.json());
+                      displayResultsAfferent(afferentResponse, file.name);
+                      break;
+
+                case "efferent":
+                    efferentResponse = await fetch(efferentApiUrl, { method: "POST", body: formData }).then(res => res.json());
+                    displayResultsEfferent(efferentResponse, file.name);
+                    break;
+
+                case "defect":
+                    defectResponse = await fetch(defectApiUrl, { method: "POST", body: formData }).then(res => res.json());
+                    displayResults(defectResponse, file.name);
+                    break;
+
+                default:
+                  alert("Please select a valid API option.");
+                  callApiButton.disabled = false;
+                  return;
             }
 
         } catch (error) {
@@ -66,6 +88,33 @@ document.addEventListener("DOMContentLoaded", () => {
             callApiButton.disabled = false;
         }
     });
+
+      // Function to calculate Instability Metric
+         function calculateInstability(fileName) {
+          const afferentMetrics = JSON.parse(localStorage.getItem("afferentMetricsHistory")) || {};
+            const efferentMetrics = JSON.parse(localStorage.getItem("efferentMetricsHistory")) || {};
+
+            if (!afferentMetrics[fileName] || !efferentMetrics[fileName]) {
+               alert("Both afferent and efferent coupling data are required to calculate instability.");
+               return;
+            }
+
+        // Fetching latest afferent and efferent values
+        const latestAfferent = afferentMetrics[fileName][afferentMetrics[fileName].length - 1].couplingData;
+        const latestEfferent = efferentMetrics[fileName][efferentMetrics[fileName].length - 1].couplingData;
+
+         // Computing total Ca and Ce values
+        const Ca = Object.values(latestAfferent).reduce((sum, val) => sum + val, 0);
+        const Ce = Object.values(latestEfferent).reduce((sum, val) => sum + val, 0);
+
+        if (Ca + Ce === 0) {
+         alert("Cannot calculate instability metric when both afferent and efferent coupling are zero.");
+         return;
+         }
+
+         const instability = Ce / (Ca + Ce);
+         return instability;
+    }
 
     function saveMetrics(data, fileName) {
         // Parse as float so we can chart it numerically
@@ -127,6 +176,27 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         localStorage.setItem("afferentMetricsHistory", JSON.stringify(allAfferent));
       }
+
+      // Save Instability Metrics
+      function saveMetricsInstability(instabilityValue, fileName) {
+         let allInstability = JSON.parse(localStorage.getItem("instabilityMetricsHistory")) || {};
+
+         if (!allInstability[fileName]) {
+             allInstability[fileName] = [];
+         }
+
+         allInstability[fileName].push({
+              timestamp: new Date().toLocaleString(),
+              fileName,
+              instability: instabilityValue
+         });
+
+         if (allInstability[fileName].length > 5) {
+              allInstability[fileName].shift();
+         }
+
+            localStorage.setItem("instabilityMetricsHistory", JSON.stringify(allInstability));
+         }
 
     function displayResults(data, selectedOption, fileName) {
         const resultDiv = document.getElementById("result");
@@ -238,7 +308,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     }
-  
+
   function displayResultsAfferent(data, selectedOption, fileName) {
     const resultDiv = document.getElementById("result");
     resultDiv.innerHTML = `
@@ -366,7 +436,6 @@ document.addEventListener("DOMContentLoaded", () => {
     return palette[index % palette.length];
   }
 
-
   function displayResultsEfferent(data, selectedOption, fileName) {
     const resultDiv = document.getElementById("result");
     resultDiv.innerHTML = `
@@ -389,6 +458,7 @@ document.addEventListener("DOMContentLoaded", () => {
     saveMetricsEfferent(data, fileName);
     renderBenchmarkComparisonEfferent(fileName);
   }
+
 
   function renderBenchmarkComparisonEfferent(fileName) {
     const allEfferent = JSON.parse(localStorage.getItem("efferentMetricsHistory")) || {};
@@ -493,12 +563,134 @@ document.addEventListener("DOMContentLoaded", () => {
     return palette[index % palette.length];
   }
 
+  function displayCombinedResults(afferentData, efferentData, fileName) {
+    const resultDiv = document.getElementById("result");
+    resultDiv.innerHTML = `
+        <h2>Afferent & Efferent Coupling Analysis</h2>
+        <p><strong>File:</strong> ${fileName}</p>
+        <h3>Afferent Coupling Results:</h3>
+        <ul id="afferentList"></ul>
+        <canvas id="afferentChart" width="500" height="300"></canvas>
+        <h3>Efferent Coupling Results:</h3>
+        <ul id="efferentList"></ul>
+        <canvas id="efferentChart" width="500" height="300"></canvas>
+    `;
+
+    // Fill the lists
+    const afferentList = document.getElementById("afferentList");
+    for (const [className, count] of Object.entries(afferentData)) {
+        const li = document.createElement("li");
+        li.textContent = `${className}: ${count}`;
+        afferentList.appendChild(li);
+    }
+
+    const efferentList = document.getElementById("efferentList");
+    for (const [className, count] of Object.entries(efferentData)) {
+        const li = document.createElement("li");
+        li.textContent = `${className}: ${count}`;
+        efferentList.appendChild(li);
+    }
+
+    // Save metrics separately
+    saveMetricsAfferent(afferentData, fileName);
+    saveMetricsEfferent(efferentData, fileName);
+
+    // Render separate graphs for Afferent and Efferent
+
+        setTimeout(() => {
+            renderBenchmarkComparisonAfferent(fileName);
+            renderBenchmarkComparisonEfferent(fileName);
+        }, 500);
+
+}
+// Display Instability Results
+  function displayInstabilityResults(instabilityValue, fileName) {
+  const resultDiv = document.getElementById("result");
+  resultDiv.innerHTML += `
+      <h3>Instability Metric Results:</h3>
+      <p><strong>Instability:</strong> ${instabilityValue.toFixed(2)}</p>
+      <canvas id="instabilityChart" width="500" height="300"></canvas>
+      `;
+      renderBenchmarkComparisonInstability(fileName);
+  }
+
+ // Render Instability Graph
+ function renderBenchmarkComparisonInstability(fileName) {
+  const allInstability = JSON.parse(localStorage.getItem("instabilityMetricsHistory")) || {};
+  const history = allInstability[fileName];
+
+  if (!history || history.length === 0) {
+  document.getElementById("instabilityChart").outerHTML =
+   "<p>No instability data found for this file.</p>";
+    return;
+   }
+
+   const timestamps = history.map(h => h.timestamp);
+   const instabilityValues = history.map(h => h.instability);
+
+  const ctx = document.getElementById("instabilityChart").getContext("2d");
+
+  if (window.instabilityChart instanceof Chart) {
+       window.instabilityChart.destroy();
+  }
+
+  window.instabilityChart = new Chart(ctx, {
+       type: "line",
+       data: {
+       labels: timestamps,
+       datasets: [{
+       label: "Instability Over Time",
+       data: instabilityValues,
+       borderColor: "#FF5733",
+       backgroundColor: "transparent",
+       borderWidth: 2,
+       tension: 0.1
+       }]
+       },
+        options: {
+             responsive: true,
+             scales: {
+              x: {
+               title: { display: true, text: "Time" }
+               },
+              y: {
+                beginAtZero: true,
+                title: { display: true, text: "Instability Metric (Ce / (Ca + Ce))" }
+              }
+              },
+              plugins: {
+                annotation: {
+                annotations: {
+                benchmarkLine: {
+                    type: "line",
+                    yMin: 0.5, // Example benchmark value
+                    yMax: 0.5,
+                    borderColor: "red",
+                    borderWidth: 2,
+                    borderDash: [6, 6],
+                    label: {
+                    enabled: true,
+                    content: "Ideal Benchmark (0.5)",
+                    position: "end",
+                    backgroundColor: "rgba(255, 255, 255, 0.7)",
+                    color: "red"
+                    }
+                   }
+                  }
+                },
+                 legend: { display: true }
+                    }
+                }
+            });
+   }
 
 });
 
 // console.log(JSON.parse(localStorage.getItem("afferentMetricsHistory")));
 // console.log(JSON.parse(localStorage.getItem("efferentMetricsHistory")));
+// console.log(JSON.parse(localStorage.getItem("instabilityMetricsHistory")));
 // console.log(JSON.parse(localStorage.getItem("metricsHistory")));
 // localStorage.removeItem("afferentMetricsHistory");
 // localStorage.removeItem("efferentMetricsHistory");
+// localStorage.removeItem("instabilityMetricsHistory");
 // localStorage.removeItem("metricsHistory");
