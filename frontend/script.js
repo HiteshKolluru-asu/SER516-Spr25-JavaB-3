@@ -18,22 +18,6 @@ document.addEventListener("DOMContentLoaded", () => {
         let efferentApiUrl = `${apiBaseUrl}/efferent-coupling/upload`;
         let defectApiUrl = `${apiBaseUrl}/code-analysis/upload`;
 
-        // switch (selectedOption) {
-        //     case "afferent":
-        //         apiUrl = "http://localhost:8080/api/afferent-coupling/upload";
-        //         break;
-        //     case "efferent":
-        //         apiUrl = "http://localhost:8080/api/efferent-coupling/upload";
-        //         break;
-        //     case "defect":
-        //         apiUrl = "http://localhost:8080/api/code-analysis/upload";
-        //         break;
-        //     default:
-        //         alert("Please select a valid API option.");
-        //         callApiButton.disabled = false;
-        //         return;
-        // }
-
         const formData = new FormData();
         formData.append("file", file);
 
@@ -531,7 +515,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function displayCombinedResults(afferentData, efferentData, fileName) {
     const resultDiv = document.getElementById("result");
     resultDiv.innerHTML = `
-        <h2>Combined Afferent & Efferent Coupling Analysis</h2>
+        <h2>Afferent & Efferent Coupling Analysis</h2>
         <p><strong>File:</strong> ${fileName}</p>
         <h3>Afferent Coupling Results:</h3>
         <ul id="afferentList"></ul>
