@@ -22,7 +22,6 @@ document.addEventListener("DOMContentLoaded", () => {
         formData.append("file", file);
 
         try {
-
             // if (!response.ok) {
             //     const errorText = await response.text();
             //     throw new Error(`HTTP ${response.status}: ${errorText}`);
@@ -81,7 +80,6 @@ document.addEventListener("DOMContentLoaded", () => {
                   callApiButton.disabled = false;
                   return;
             }
-
 
         } catch (error) {
             console.error("Error calling API:", error);
@@ -598,6 +596,7 @@ document.addEventListener("DOMContentLoaded", () => {
     saveMetricsEfferent(efferentData, fileName);
 
     // Render separate graphs for Afferent and Efferent
+
         setTimeout(() => {
             renderBenchmarkComparisonAfferent(fileName);
             renderBenchmarkComparisonEfferent(fileName);
