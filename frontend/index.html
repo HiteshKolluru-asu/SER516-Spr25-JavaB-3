@@ -12,27 +12,31 @@
       margin: 0;
       padding: 0;
       display: flex;
+      flex-direction: column;
       align-items: center;
-      justify-content: center;
+      justify-content: flex-start;
       min-height: 100vh;
     }
     .container {
       background: #fff;
       border-radius: 10px;
       box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
-      max-width: 600px;
+      max-width: 1200px;
       width: 90%;
       padding: 30px;
       text-align: center;
     }
     h1 {
+      margin-top: 25px;
       margin-bottom: 15px;
       color: #333;
-      font-size: 22px;
+      font-size: 50px;
     }
     input, select, button {
-      width: 100%;
+      display: block;
+      width: 50%;
       padding: 12px;
+      margin: 10px auto;
       margin-bottom: 15px;
       border: 1px solid #ddd;
       border-radius: 5px;
@@ -69,15 +73,17 @@
     }
     #charts {
       display: flex;
-      flex-direction: column;
+      flex-wrap: wrap;
+      justify-content: space-around;
       align-items: center;
-      gap: 15px;
       margin-top: 20px;
     }
     canvas {
       background: white;
       border-radius: 10px;
       padding: 10px;
+      width: 45%;
+      height: 300px;
     }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -89,13 +95,19 @@
     <input type="file" id="fileInput" accept=".zip" />
     <select id="apiSelect">
       <option value="">-- Select Analysis --</option>
-      <option value="afferent">Afferent Coupling</option>
-      <option value="efferent">Efferent Coupling</option>
+      <!-- <option value="afferent">Afferent Coupling</option>
+      <option value="efferent">Efferent Coupling</option> -->
       <option value="defect">Defect Density</option>
+      <option value="combined">Afferent & Efferent</option> <!-- Updated Option for Combined -->
+    </select>
     </select>
     <button id="callApiButton">Analyze</button>
     <div id="result"></div>
-    <div id="charts"></div>
+    <div id="charts">
+      <canvas id="afferentChart"></canvas>
+      <canvas id="efferentChart"></canvas> 
+    </div>
+    
   </div>
 
   <script src="script.js"></script>
