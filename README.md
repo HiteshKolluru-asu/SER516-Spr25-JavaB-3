@@ -14,6 +14,7 @@ The Software Quality Metrics project is a Java-based application designed to ana
 * **Afferent Coupling (Ca):** Measures how many other classes depend on a given class.
 * **Efferent Coupling (Ce):** Measures how many external classes a given class depends on.
 * **Defect Density:** Calculates the number of defects per lines of code to assess software reliability.
+* **Instability Metric(I):** Measures how susceptible a software package is, to changes based on its outgoing dependencies. It is calculated using both Ce and Ca. 
 
 * This project enables developers to upload ZIP files containing Java code, analyze quality metrics, and track file history. It also supports benchmark values for quality evaluation.
 
@@ -68,7 +69,10 @@ The system calculates:
 
 * Afferent Coupling (Ca): Measures the number of incoming dependencies. Benchmark Value: 5
 * Efferent Coupling (Ce): Measures the number of outgoing dependencies. Benchmark Value: 5
+* Instability metric (I) : Measures how susceptible a software package is, to changes based on its outgoing dependencies.
 * Defect Density: Number of defects per lines of code. Benchmark Value: 10
+* Visualization of the metrics: Line graph for Afferent, Efferent and Instability metrics. Bar Chart for Defect Density.
+* Added a Benchmark value for each metric and graph shows the metrics against this idealized baseline(benchmark) over time.
 
 ### 4.2 File Storage and Comparison
 
