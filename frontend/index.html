@@ -89,9 +89,11 @@
     <input type="file" id="fileInput" accept=".zip" />
     <select id="apiSelect">
       <option value="">-- Select Analysis --</option>
-      <option value="afferent">Afferent Coupling</option>
-      <option value="efferent">Efferent Coupling</option>
+      <!-- <option value="afferent">Afferent Coupling</option>
+      <option value="efferent">Efferent Coupling</option> -->
       <option value="defect">Defect Density</option>
+      <option value="combined">Combined (Afferent + Efferent)</option> <!-- Updated Option for Combined -->
+    </select>
     </select>
     <button id="callApiButton">Analyze</button>
     <div id="result"></div>
