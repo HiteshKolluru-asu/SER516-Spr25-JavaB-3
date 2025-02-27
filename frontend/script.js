@@ -128,6 +128,33 @@ document.addEventListener("DOMContentLoaded", () => {
         localStorage.setItem("afferentMetricsHistory", JSON.stringify(allAfferent));
       }
 
+    // Function to calculate Instability Metric
+     function calculateInstability(fileName) {
+        const afferentMetrics = JSON.parse(localStorage.getItem("afferentMetricsHistory")) || {};
+          const efferentMetrics = JSON.parse(localStorage.getItem("efferentMetricsHistory")) || {};
+
+          if (!afferentMetrics[fileName] || !efferentMetrics[fileName]) {
+             alert("Both afferent and efferent coupling data are required to calculate instability.");
+             return;
+          }
+
+      // Fetching latest afferent and efferent values
+      const latestAfferent = afferentMetrics[fileName][afferentMetrics[fileName].length - 1].couplingData;
+      const latestEfferent = efferentMetrics[fileName][efferentMetrics[fileName].length - 1].couplingData;
+
+       // Computing total Ca and Ce values
+      const Ca = Object.values(latestAfferent).reduce((sum, val) => sum + val, 0);
+      const Ce = Object.values(latestEfferent).reduce((sum, val) => sum + val, 0);
+
+      if (Ca + Ce === 0) {
+       alert("Cannot calculate instability metric when both afferent and efferent coupling are zero.");
+       return;
+       }
+
+       // Calculate Instability
+       const instability = Ce / (Ca + Ce);
+}
+
     function displayResults(data, selectedOption, fileName) {
         const resultDiv = document.getElementById("result");
 
@@ -492,8 +519,6 @@ document.addEventListener("DOMContentLoaded", () => {
     ];
     return palette[index % palette.length];
   }
-
-
 });
 
 // console.log(JSON.parse(localStorage.getItem("afferentMetricsHistory")));
