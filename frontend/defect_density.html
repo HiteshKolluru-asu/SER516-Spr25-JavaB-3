@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Defect Density Analysis</title>
+    <link href="https://fonts.googleapis.com/css?family=Roboto:400,500&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3"></script>
+    <style>
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            background: #f4f7fa;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+            max-width: 600px;
+            width: 90%;
+            text-align: center;
+        }
+        h1 {
+            font-size: 28px;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        input {
+            width: calc(100% - 20px);
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+        }
+        button {
+            width: calc(100% - 20px);
+            padding: 12px;
+            margin-top: 10px;
+            border-radius: 6px;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            background: #f9f9f9;
+            font-size: 16px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            text-align: left;
+            display: none; /* Hide initially */
+        }
+    </style>
+</head>
+<body class="defect-density-page">
+
+<div class="container">
+    <h1>Defect Density Analysis</h1>
+    <p>Enter a GitHub Repository Link</p>
+    <input type="text" id="githubRepoInput" placeholder="https://github.com/owner/repository">
+    <button id="callApiButton">Analyze</button>
+    <div id="result"></div> <!-- Now hidden until API returns a result -->
+</div>
+
+<script>
+    document.getElementById("callApiButton").addEventListener("click", async () => {
+        const repoUrl = document.getElementById("githubRepoInput").value.trim();
+        const resultDiv = document.getElementById("result");
+
+        if (!repoUrl) {
+            alert("Please enter a GitHub repository URL.");
+            return;
+        }
+
+        const apiUrl = `http://localhost:8080/api/defects/repo?url=${encodeURIComponent(repoUrl)}`;
+
+        try {
+            const response = await fetch(apiUrl);
+            const defectCount = await response.text();
+
+            if (isNaN(defectCount)) {
+                resultDiv.innerHTML = `<p style="color: red;">Error: ${defectCount}</p>`;
+            } else {
+                resultDiv.innerHTML = `<h3>Defect Count: ${defectCount}</h3>`;
+            }
+
+            resultDiv.style.display = "block"; // Show result only after API call
+        } catch (error) {
+            resultDiv.innerHTML = `<p style="color: red;">Failed to fetch data.</p>`;
+            resultDiv.style.display = "block";
+        }
+    });
+</script>
+
+</body>
+</html>
