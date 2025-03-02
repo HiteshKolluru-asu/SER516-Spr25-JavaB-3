@@ -1,115 +1,107 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Software Quality Metrics</title>
-  <link href="https://fonts.googleapis.com/css?family=Roboto:400,500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,500,700&display=swap" rel="stylesheet">
   <style>
+    /* Background settings */
     body {
       font-family: 'Roboto', Arial, sans-serif;
-      background: #f4f7fa;
+      background: url('BG.jpg') no-repeat center center fixed;
+      background-size: contain;
+      background-color: #f4f7fa;
       margin: 0;
       padding: 0;
       display: flex;
-      flex-direction: column;
       align-items: center;
-      justify-content: flex-start;
-      min-height: 100vh;
-    }
-    .container {
-      background: #fff;
-      border-radius: 10px;
-      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
-      max-width: 1200px;
-      width: 90%;
-      padding: 30px;
+      justify-content: center;
+      height: 100vh;
       text-align: center;
     }
-    h1 {
-      margin-top: 25px;
-      margin-bottom: 15px;
+
+    /* Enlarged container with centered content */
+    .container {
+      background: rgba(255, 255, 255, 0.95);
+      padding: 60px;
+      border-radius: 14px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
       color: #333;
-      font-size: 50px;
-    }
-    input, select, button {
-      display: block;
-      width: 50%;
-      padding: 12px;
-      margin: 10px auto;
-      margin-bottom: 15px;
-      border: 1px solid #ddd;
-      border-radius: 5px;
-      font-size: 16px;
-      box-sizing: border-box;
-    }
-    select {
-      background: #fff;
-    }
-    button {
-      background-color: #007bff;
-      border: none;
-      color: white;
-      font-weight: 500;
-      cursor: pointer;
-      transition: background 0.3s ease;
-    }
-    button:hover {
-      background-color: #0056b3;
-    }
-    button:disabled {
-      background-color: #ccc;
-      cursor: not-allowed;
-    }
-    #result {
-      margin-top: 20px;
-      background: #f9f9f9;
-      padding: 15px;
-      border-radius: 8px;
-      font-size: 15px;
-      text-align: left;
-      color: #333;
-      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
-    }
-    #charts {
+      max-width: 650px;
+      width: 90%;
       display: flex;
-      flex-wrap: wrap;
-      justify-content: space-around;
-      align-items: center;
-      margin-top: 20px;
+      flex-direction: column;
+      align-items: center; /* Ensures everything inside is centered */
     }
-    canvas {
-      background: white;
-      border-radius: 10px;
-      padding: 10px;
-      width: 45%;
-      height: 300px;
+
+    h1 {
+      font-size: 42px;
+      font-weight: 700;
+      margin-bottom: 40px;
+      color: #222;
+    }
+
+    .option-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center; /* Ensures buttons are centered */
+      gap: 25px;
+      width: 100%;
+    }
+
+    .box {
+      width: 80%; /* Reduced width to align buttons within the container */
+      background: #007bff;
+      color: white;
+      padding: 20px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 22px;
+      font-weight: bold;
+      transition: transform 0.3s, box-shadow 0.3s;
+      box-shadow: 0 5px 12px rgba(0, 0, 0, 0.15);
+      text-align: center;
+    }
+
+    .box:hover {
+      background: #0056b3;
+      transform: scale(1.06);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .box a {
+      text-decoration: none;
+      color: white;
+      display: block;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 50px;
+      }
+      h1 {
+        font-size: 36px;
+      }
+      .box {
+        font-size: 20px;
+        padding: 18px;
+        width: 90%;
+      }
     }
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3"></script>
 </head>
 <body>
-  <div class="container">
-    <h1>Software Quality Metrics</h1>
-    <input type="file" id="fileInput" accept=".zip" />
-    <select id="apiSelect">
-      <option value="">-- Select Analysis --</option>
-      <!-- <option value="afferent">Afferent Coupling</option>
-      <option value="efferent">Efferent Coupling</option> -->
-      <option value="defect">Defect Density</option>
-      <option value="combined">Afferent & Efferent</option> <!-- Updated Option for Combined -->
-    </select>
-    </select>
-    <button id="callApiButton">Analyze</button>
-    <div id="result"></div>
-    <div id="charts">
-      <canvas id="afferentChart"></canvas>
-      <canvas id="efferentChart"></canvas> 
+<div class="container">
+  <h1>Software Quality Metrics</h1>
+  <div class="option-box">
+    <div class="box">
+      <a href="afferent_efferent.html">📊 Afferent & Efferent Coupling</a>
     </div>
-    
+    <div class="box">
+      <a href="defect_density.html">🛠️ Defect Density Analysis</a>
+    </div>
   </div>
-
-  <script src="script.js"></script>
+</div>
 </body>
 </html>
