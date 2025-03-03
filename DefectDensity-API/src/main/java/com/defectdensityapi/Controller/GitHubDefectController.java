@@ -67,4 +67,22 @@ public class GitHubDefectController {
         return ResponseEntity.ok(mockResponse);
     }
 
+    private int getTotalLinesOfCode() {
+        String locApiUrl = "http://localhost:8083/api/defects/loc-mock"; // Mocking API URL
+    
+        RestTemplate restTemplate = new RestTemplate();
+    
+        try {
+            ResponseEntity<Map> response = restTemplate.getForEntity(locApiUrl, Map.class);
+            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                return (int) response.getBody().get("totalLinesOfCode");
+            }
+        } catch (Exception e) {
+            System.out.println("Error calling LOC API: " + e.getMessage());
+        }
+    
+        return 1000; // the base return value
+    }
+    
+
 }
