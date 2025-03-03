@@ -3,6 +3,10 @@ package com.defectdensityapi.Controller;
 import com.defectdensityapi.util.GithubLinkOwnerRepoExtractor;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
@@ -55,4 +59,12 @@ public class GitHubDefectController {
             return e.getMessage();
         }
     }
+
+    @GetMapping("/loc-mock")
+    public ResponseEntity<Map<String, Object>> mockLinesOfCodeApi() {
+        Map<String, Object> mockResponse = new HashMap<>();
+        mockResponse.put("totalLinesOfCode", 5000); // some placeholder value for the mocking response
+        return ResponseEntity.ok(mockResponse);
+    }
+
 }
