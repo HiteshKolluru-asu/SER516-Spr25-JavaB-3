@@ -10,65 +10,125 @@
     <style>
         body {
             font-family: 'Roboto', Arial, sans-serif;
-            background: #f4f7fa;
+            background: #007bff;
             margin: 0;
             padding: 0;
             display: flex;
-            flex-direction: column;
             align-items: center;
-            justify-content: flex-start;
+            justify-content: center;
             height: 100vh;
-        }
-        .container {
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
-            max-width: 900px;
-            width: 90%;
             text-align: center;
-            margin-top: 90px;
+            position: relative;
         }
+
+        /* Navigation Buttons */
+        .nav-buttons {
+            position: absolute;
+            left: 20px;
+            width: 220px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .nav-buttons a {
+            text-decoration: none;
+            background: white;
+            color: #007bff;
+            padding: 14px 20px;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: bold;
+            width: 100%;
+            display: block;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s, background 0.3s;
+        }
+
+        .nav-buttons a:hover {
+            background: #f8f9fa;
+            transform: scale(1.05);
+        }
+
+        .nav-buttons .active {
+            background: #004aad;
+            color: white;
+            transform: scale(1.05);
+        }
+
+        /* Adjusted Container Size */
+        .container {
+            background: rgba(255, 255, 255, 0.98);
+            padding: 50px; /* Reduced padding */
+            border-radius: 18px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+            max-width: 700px; /* Reduced max-width */
+            width: 85%;
+        }
+
         h1 {
-            font-size: 28px;
-            color: #333;
-            margin-bottom: 20px;
+            font-size: 38px;
+            color: #222;
+            margin-bottom: 30px;
+            font-weight: bold;
         }
+
+        .file-input-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
         input {
-            width: calc(100% - 20px);
-            padding: 10px;
-            margin: 10px 0;
-            border-radius: 5px;
+            width: 85%;
+            padding: 14px;
+            border-radius: 8px;
             border: 1px solid #ccc;
-            font-size: 14px;
+            font-size: 18px;
         }
+
         button {
-            width: calc(100% - 20px);
-            padding: 12px;
-            margin-top: 10px;
-            border-radius: 5px;
+            width: 85%;
+            padding: 16px;
+            margin-top: 25px;
+            border-radius: 10px;
             border: none;
-            background-color: #007bff;
+            background-color: #004aad;
             color: white;
             font-weight: bold;
             cursor: pointer;
-            transition: background 0.3s ease;
-            font-size: 16px;
+            transition: background 0.3s ease, transform 0.2s;
+            font-size: 20px;
         }
+
         button:hover {
-            background-color: #0056b3;
+            background-color: #003d80;
+            transform: scale(1.07);
         }
+
         #result {
             margin-top: 20px;
-            font-size: 14px;
+            font-size: 18px;
+            display: none;
         }
     </style>
 </head>
 <body class="afferent-efferent-page">
 
+<div class="nav-buttons">
+    <a href="index.html">🏠 Home</a>
+    <a href="afferent_efferent.html" class="active">🔍 Afferent & Efferent</a>
+    <a href="defect_density.html">📊 Defect Density Analysis</a>
+</div>
+
+
 <div class="container">
     <h1>Afferent & Efferent Coupling Analysis</h1>
-    <input type="file" id="fileInput" accept=".zip">
+    <div class="file-input-container">
+        <input type="file" id="fileInput" accept=".zip">
+    </div>
     <button id="callApiButton">Analyze</button>
     <div id="result"></div>
 </div>
