@@ -16,15 +16,17 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            height: 100vh;
+            min-height: 100vh;
             text-align: center;
             position: relative;
+            overflow: hidden; /* Prevent whole page scrolling */
         }
 
-        /* Navigation Buttons */
         .nav-buttons {
-            position: absolute;
+            position: fixed;
             left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
             width: 220px;
             display: flex;
             flex-direction: column;
@@ -57,13 +59,16 @@
             transform: scale(1.05);
         }
 
+        /* Analysis Box with Scrolling */
         .container {
             background: rgba(255, 255, 255, 0.98);
-            padding: 50px; /* Reduced padding */
+            padding: 50px;
             border-radius: 18px;
             box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
-            max-width: 700px; /* Reduced max-width */
+            max-width: 700px;
             width: 85%;
+            max-height: 80vh; /* Limit height */
+            overflow-y: auto; /* Enable scrolling inside container */
         }
 
         h1 {
