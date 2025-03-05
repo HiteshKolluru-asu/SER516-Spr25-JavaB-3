@@ -1,9 +1,25 @@
 document.addEventListener("DOMContentLoaded", () => {
     const callApiButton = document.getElementById("callApiButton");
 
+    if (!callApiButton) {
+        console.error("Error: callApiButton not found.");
+        return;
+    }
+
+    // Identify which page the script is running on
+    let selectedOption = "";
+    if (document.body.classList.contains("afferent-efferent-page")) {
+        selectedOption = "combined"; // Set for afferent-efferent analysis
+    } else if (document.body.classList.contains("defect-density-page")) {
+        selectedOption = "defect"; // Set for defect density analysis
+    } else {
+        console.error("Error: Unable to determine analysis type.");
+        return;
+    }
+
     callApiButton.addEventListener("click", async () => {
         const fileInput = document.getElementById("fileInput");
-        if (!fileInput.files.length) {
+        if (!fileInput || !fileInput.files.length) {
             alert("Please select a zip file.");
             return;
         }
@@ -12,8 +28,8 @@ document.addEventListener("DOMContentLoaded", () => {
         console.log("File received:", file);
 
         callApiButton.disabled = true;
-        const selectedOption = document.getElementById("apiSelect").value;
-        let apiBaseUrl = "http://localhost:8080/api"
+
+        let apiBaseUrl = "http://localhost:8080/api";
         let afferentApiUrl = `${apiBaseUrl}/afferent-coupling/upload`;
         let efferentApiUrl = `${apiBaseUrl}/efferent-coupling/upload`;
         let defectApiUrl = `${apiBaseUrl}/code-analysis/upload`;
@@ -22,63 +38,34 @@ document.addEventListener("DOMContentLoaded", () => {
         formData.append("file", file);
 
         try {
-            // if (!response.ok) {
-            //     const errorText = await response.text();
-            //     throw new Error(`HTTP ${response.status}: ${errorText}`);
-            // }
-
             let afferentResponse, efferentResponse, defectResponse;
 
             switch (selectedOption) {
                 case "combined":
-
-                    const afferentFormData = new FormData();
-                    afferentFormData.append("file", file);
-
-                    const efferentFormData = new FormData();
-                    efferentFormData.append("file", file);
-
+                    // Call afferent and efferent APIs
                     [afferentResponse, efferentResponse] = await Promise.all([
-                      fetch(afferentApiUrl, {
-                          method: "POST",
-                          body: afferentFormData,
-                          headers: { "Accept": "application/json" }
-                      }).then(res => res.json()),
+                        fetch(afferentApiUrl, { method: "POST", body: formData }).then(res => res.json()),
+                        fetch(efferentApiUrl, { method: "POST", body: formData }).then(res => res.json())
+                    ]);
 
-                      fetch(efferentApiUrl, {
-                          method: "POST",
-                          body: efferentFormData,
-                          headers: { "Accept": "application/json" }
-                      }).then(res => res.json())
-                  ]);
-                  console.log("Combined API responses:", { afferentResponse, efferentResponse });
-                  displayCombinedResults(afferentResponse, efferentResponse, file.name);
+                    console.log("Afferent & Efferent API Responses:", { afferentResponse, efferentResponse });
+                    displayCombinedResults(afferentResponse, efferentResponse, file.name);
 
-                  const instabilityValue = calculateInstability(file.name);
-                  saveMetricsInstability(instabilityValue, file.name);
-                  displayInstabilityResults(instabilityValue, file.name);
-
-                  break;
-
-                case "afferent":
-                      afferentResponse = await fetch(afferentApiUrl, { method: "POST", body: formData }).then(res => res.json());
-                      displayResultsAfferent(afferentResponse, file.name);
-                      break;
-
-                case "efferent":
-                    efferentResponse = await fetch(efferentApiUrl, { method: "POST", body: formData }).then(res => res.json());
-                    displayResultsEfferent(efferentResponse, file.name);
+                    const instabilityValue = calculateInstability(file.name);
+                    saveMetricsInstability(instabilityValue, file.name);
+                    displayInstabilityResults(instabilityValue, file.name);
                     break;
 
                 case "defect":
+                    // Call defect API
                     defectResponse = await fetch(defectApiUrl, { method: "POST", body: formData }).then(res => res.json());
                     displayResults(defectResponse, file.name);
                     break;
 
                 default:
-                  alert("Please select a valid API option.");
-                  callApiButton.disabled = false;
-                  return;
+                    alert("Invalid API option.");
+                    callApiButton.disabled = false;
+                    return;
             }
 
         } catch (error) {
@@ -88,6 +75,8 @@ document.addEventListener("DOMContentLoaded", () => {
             callApiButton.disabled = false;
         }
     });
+
+
 
       // Function to calculate Instability Metric
          function calculateInstability(fileName) {
