@@ -3,6 +3,7 @@ package com.defectdensityapi.Controller;
 import com.defectdensityapi.util.GithubLinkOwnerRepoExtractor;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.defectdensityapi.util.LocApiAdapter;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -17,10 +18,12 @@ public class GitHubDefectController {
 
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
-
-    public GitHubDefectController() {
+    private final LocApiAdapter locApiAdapter;
+    
+    public GitHubDefectController(LocApiAdapter locApiAdapter) {
         this.restTemplate = new RestTemplate();
         this.objectMapper = new ObjectMapper();
+        this.locApiAdapter = locApiAdapter;
     }
 
     @GetMapping("/{owner}/{repo}")
@@ -63,25 +66,8 @@ public class GitHubDefectController {
     @GetMapping("/loc-mock")
     public ResponseEntity<Map<String, Object>> mockLinesOfCodeApi() {
         Map<String, Object> mockResponse = new HashMap<>();
-        mockResponse.put("totalLinesOfCode", 5000); // some placeholder value for the mocking response
+        mockResponse.put("totalLinesOfCode", locApiAdapter.getTotalLinesOfCode()); 
         return ResponseEntity.ok(mockResponse);
-    }
-
-    private int getTotalLinesOfCode() {
-        String locApiUrl = "http://localhost:8083/api/defects/loc-mock"; // Mocking API URL
-    
-        RestTemplate restTemplate = new RestTemplate();
-    
-        try {
-            ResponseEntity<Map> response = restTemplate.getForEntity(locApiUrl, Map.class);
-            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-                return (int) response.getBody().get("totalLinesOfCode");
-            }
-        } catch (Exception e) {
-            System.out.println("Error calling LOC API: " + e.getMessage());
-        }
-    
-        return 1000; // the base return value
     }
     
 
