@@ -555,6 +555,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function displayCombinedResults(afferentData, efferentData, fileName) {
     const resultDiv = document.getElementById("result");
+    resultDiv.style.display = "block";
+    
     resultDiv.innerHTML = `
         <h2>Afferent & Efferent Coupling Analysis</h2>
         <p><strong>File:</strong> ${fileName}</p>
