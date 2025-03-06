@@ -22,7 +22,6 @@ public class RoutingController {
 
     private static final String AFFERENT_COUPLING_API = "http://afferent-coupling-api:8081/api/afferent-coupling/upload";
     private static final String EFFERENT_COUPLING_API = "http://efferent-coupling-api:8082/api/efferent-coupling/upload";
-    private static final String DEFECT_DENSITY_API = "http://defect-density-api:8083/api/code-analysis/upload";
 
     @PostMapping("/{service}/upload")
     @Async
@@ -40,9 +39,6 @@ public class RoutingController {
                 break;
             case "efferent-coupling":
                 targetUrl = EFFERENT_COUPLING_API;
-                break;
-            case "code-analysis":
-                targetUrl = DEFECT_DENSITY_API;
                 break;
             default:
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -71,4 +67,38 @@ public class RoutingController {
         }
     });
     }
+
+    @GetMapping("/{service}/repo")
+    @Async
+    public CompletableFuture<ResponseEntity<String>> routeGetRequest(
+            @PathVariable String service,
+            @RequestParam("url") String urlParam
+    ) {
+        return CompletableFuture.supplyAsync(() -> {
+
+            // Only handle 'code-analysis' for the GET call here
+            if (!service.equalsIgnoreCase("defects")) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("Invalid or unsupported service name for GET /repo: " + service);
+            }
+
+            // Forward to the new defect density GET endpoint
+            String targetUrl = "http://defect-density-api:8083/api/defects/repo";
+
+            try {
+                // Build the URI with query param 'url'
+                String uri = UriComponentsBuilder.fromHttpUrl(targetUrl)
+                                                 .queryParam("url", urlParam)
+                                                 .toUriString();
+
+                // Forward the GET request
+                return restTemplate.getForEntity(uri, String.class);
+
+            } catch (Exception e) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body("Error while forwarding GET request: " + e.getMessage());
+            }
+        });
+    }
+
 }
