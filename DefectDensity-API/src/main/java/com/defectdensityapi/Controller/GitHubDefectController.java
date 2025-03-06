@@ -56,7 +56,17 @@ public class GitHubDefectController {
             JsonNode rootNode = objectMapper.readTree(response.getBody());
             int openIssuesCount = rootNode.get("open_issues_count").asInt();
 
-            return Integer.toString(openIssuesCount);
+            int totalLinesOfCode = locApiAdapter.getTotalLinesOfCode();
+
+            if (totalLinesOfCode == 0) {
+                return "Defect Density: N/A (Total lines of code is zero)";
+            }
+    
+            // Calculate defect density per 1000 lines of code
+            double defectDensityPerKLOC = (openIssuesCount * 1000.0) / totalLinesOfCode;
+
+            return String.format("%.2f", defectDensityPerKLOC);
+
         }
         catch(Exception e){
             return e.getMessage();
