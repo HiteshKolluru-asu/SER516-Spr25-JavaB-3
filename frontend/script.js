@@ -55,7 +55,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     saveMetricsInstability(instabilityValue, file.name);
                     displayInstabilityResults(instabilityValue, file.name);
                     break;
-
+                
                 case "defect":
                     // Call defect API
                     defectResponse = await fetch(defectApiUrl, { method: "POST", body: formData }).then(res => res.json());
@@ -187,116 +187,117 @@ document.addEventListener("DOMContentLoaded", () => {
             localStorage.setItem("instabilityMetricsHistory", JSON.stringify(allInstability));
          }
 
-    function displayResults(data, selectedOption, fileName) {
-        const resultDiv = document.getElementById("result");
+         function displayResults(data, selectedOption, fileName) {
+          const resultDiv = document.getElementById("result");
+  
+          const numericDefectDensity = parseFloat(data.defectDensity) || 0;
+          let category = "";
+  
+          if (numericDefectDensity <= 100) {
+              category = "Highly Reliable Software 🟢";
+          } else if (numericDefectDensity <= 500) {
+              category = "Industry Standard Software 🟡";
+          } else if (numericDefectDensity <= 1000) {
+              category = "Acceptable Threshold ⚠️";
+          } else {
+              category = "Poor Quality Software 🔴";
+          }
+  
+          resultDiv.innerHTML = `
+            <h2>Analysis Result</h2>
+            <p><strong>Total Lines of Code:</strong> ${data.totalLinesOfCode ?? "N/A"}</p>
+            <p><strong>Total Defects:</strong> ${data.totalDefects ?? "N/A"}</p>
+            <p><strong>Defect Density:</strong> ${data.defectDensity ?? "N/A"} (per 1000 LOC)</p>
+            <p><strong>Category:</strong> <span style="font-weight: bold; color: ${
+              category.includes("Highly Reliable") ? "green" :
+              category.includes("Industry Standard") ? "orange" :
+              category.includes("Acceptable Threshold") ? "goldenrod" :
+              "red"
+          }">${category}</span></p>
+            <h3>Benchmark Comparison</h3>
+            <canvas id="benchmarkChart" width="500" height="300"></canvas>
+          `;
+  
+          saveMetrics(data, fileName);
+  
+          renderBenchmarkComparison(fileName);
+      }
+  
+      function renderBenchmarkComparison(fileName) {
+          const allMetrics = JSON.parse(localStorage.getItem("metricsHistory")) || {};
+  
+          if (!allMetrics[fileName] || allMetrics[fileName].length === 0) {
+              document.getElementById("benchmarkChart").outerHTML =
+                  "<p>No previous data found for this file.</p>";
+              return;
+          }
+  
+          const history = allMetrics[fileName];
+          const timestamps = history.map(entry => entry.timestamp);
+          const defectDensities = history.map(entry => entry.defectDensity);
+  
+          const ctx = document.getElementById("benchmarkChart").getContext("2d");
+  
+          if (window.benchmarkChart instanceof Chart) {
+              window.benchmarkChart.destroy();
+          }
+  
+          window.benchmarkChart = new Chart(ctx, {
+              type: "bar",
+              data: {
+                  labels: timestamps,
+                  datasets: [
+                      {
+                          label: `Defect Density for ${fileName}`,
+                          data: defectDensities,
+                          backgroundColor: "rgba(54, 162, 235, 0.5)",
+                          borderColor: "rgba(54, 162, 235, 1)",
+                          borderWidth: 1
+                      }
+                  ]
+              },
+              options: {
+                  responsive: true,
+                  scales: {
+                      y: {
+                          beginAtZero: true,
+                          suggestedMax: 20,
+                          title: {
+                              display: true,
+                              text: "Defect Density"
+                          }
+                      },
+                      x: {
+                          title: {
+                              display: true,
+                              text: "Timestamp"
+                          }
+                      }
+                  },
+                  plugins: {
+                      annotation: {
+                          annotations: {
+                              benchmarkLine: {
+                                  type: "line",
+                                  yMin: 10,
+                                  yMax: 10,
+                                  borderColor: "red",
+                                  borderWidth: 2,
+                                  label: {
+                                      enabled: true,
+                                      content: "Benchmark (10 per 1000 LOC)",
+                                      position: "end",  // positions label at the line end
+                                      backgroundColor: "rgba(255, 255, 255, 0.7)",
+                                      color: "red"
+                                  }
+                              }
+                          }
+                      }
+                  }
+              }
+          });
+      }
 
-        const numericDefectDensity = parseFloat(data.defectDensity) || 0;
-        let category = "";
-
-        if (numericDefectDensity <= 100) {
-            category = "Highly Reliable Software 🟢";
-        } else if (numericDefectDensity <= 500) {
-            category = "Industry Standard Software 🟡";
-        } else if (numericDefectDensity <= 1000) {
-            category = "Acceptable Threshold ⚠️";
-        } else {
-            category = "Poor Quality Software 🔴";
-        }
-
-        resultDiv.innerHTML = `
-          <h2>Analysis Result</h2>
-          <p><strong>Total Lines of Code:</strong> ${data.totalLinesOfCode ?? "N/A"}</p>
-          <p><strong>Total Defects:</strong> ${data.totalDefects ?? "N/A"}</p>
-          <p><strong>Defect Density:</strong> ${data.defectDensity ?? "N/A"} (per 1000 LOC)</p>
-          <p><strong>Category:</strong> <span style="font-weight: bold; color: ${
-            category.includes("Highly Reliable") ? "green" :
-            category.includes("Industry Standard") ? "orange" :
-            category.includes("Acceptable Threshold") ? "goldenrod" :
-            "red"
-        }">${category}</span></p>
-          <h3>Benchmark Comparison</h3>
-          <canvas id="benchmarkChart" width="500" height="300"></canvas>
-        `;
-
-        saveMetrics(data, fileName);
-
-        renderBenchmarkComparison(fileName);
-    }
-
-    function renderBenchmarkComparison(fileName) {
-        const allMetrics = JSON.parse(localStorage.getItem("metricsHistory")) || {};
-
-        if (!allMetrics[fileName] || allMetrics[fileName].length === 0) {
-            document.getElementById("benchmarkChart").outerHTML =
-                "<p>No previous data found for this file.</p>";
-            return;
-        }
-
-        const history = allMetrics[fileName];
-        const timestamps = history.map(entry => entry.timestamp);
-        const defectDensities = history.map(entry => entry.defectDensity);
-
-        const ctx = document.getElementById("benchmarkChart").getContext("2d");
-
-        if (window.benchmarkChart instanceof Chart) {
-            window.benchmarkChart.destroy();
-        }
-
-        window.benchmarkChart = new Chart(ctx, {
-            type: "bar",
-            data: {
-                labels: timestamps,
-                datasets: [
-                    {
-                        label: `Defect Density for ${fileName}`,
-                        data: defectDensities,
-                        backgroundColor: "rgba(54, 162, 235, 0.5)",
-                        borderColor: "rgba(54, 162, 235, 1)",
-                        borderWidth: 1
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        suggestedMax: 20,
-                        title: {
-                            display: true,
-                            text: "Defect Density"
-                        }
-                    },
-                    x: {
-                        title: {
-                            display: true,
-                            text: "Timestamp"
-                        }
-                    }
-                },
-                plugins: {
-                    annotation: {
-                        annotations: {
-                            benchmarkLine: {
-                                type: "line",
-                                yMin: 10,
-                                yMax: 10,
-                                borderColor: "red",
-                                borderWidth: 2,
-                                label: {
-                                    enabled: true,
-                                    content: "Benchmark (10 per 1000 LOC)",
-                                    position: "end",  // positions label at the line end
-                                    backgroundColor: "rgba(255, 255, 255, 0.7)",
-                                    color: "red"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        });
-    }
 
   function displayResultsAfferent(data, selectedOption, fileName) {
     const resultDiv = document.getElementById("result");
@@ -554,6 +555,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function displayCombinedResults(afferentData, efferentData, fileName) {
     const resultDiv = document.getElementById("result");
+    resultDiv.style.display = "block";
+    
     resultDiv.innerHTML = `
         <h2>Afferent & Efferent Coupling Analysis</h2>
         <p><strong>File:</strong> ${fileName}</p>
