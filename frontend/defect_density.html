@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Defect Density Analysis</title>
+    <link href="https://fonts.googleapis.com/css?family=Roboto:400,500&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3"></script>
+    <style>
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            background: #007bff;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            text-align: center;
+            position: relative;
+            overflow: hidden; /* Prevent whole page scrolling */
+        }
+
+        .nav-buttons {
+            position: fixed;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 220px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .nav-buttons a {
+            text-decoration: none;
+            background: white;
+            color: #007bff;
+            padding: 14px 20px;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: bold;
+            width: 100%;
+            display: block;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s, background 0.3s;
+        }
+
+        .nav-buttons a:hover {
+            background: #f8f9fa;
+            transform: scale(1.05);
+        }
+
+        .nav-buttons .active {
+            background: #004aad;
+            color: white;
+            transform: scale(1.05);
+        }
+
+        /* Analysis Box with Scrolling */
+        .container {
+            background: rgba(255, 255, 255, 0.98);
+            padding: 50px;
+            border-radius: 18px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+            max-width: 700px;
+            width: 85%;
+            max-height: 80vh; /* Limit height */
+            overflow-y: auto; /* Enable scrolling inside container */
+        }
+
+        h1 {
+            font-size: 38px;
+            color: #222;
+            margin-bottom: 30px;
+            font-weight: bold;
+        }
+
+        p {
+            font-size: 20px;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        input {
+            width: 85%;
+            padding: 14px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-size: 18px;
+        }
+
+        button {
+            width: 85%;
+            padding: 16px;
+            margin-top: 25px;
+            border-radius: 10px;
+            border: none;
+            background-color: #004aad;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s ease, transform 0.2s;
+            font-size: 20px;
+        }
+
+        button:hover {
+            background-color: #003d80;
+            transform: scale(1.07);
+        }
+
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            background: #f9f9f9;
+            font-size: 18px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            text-align: center;
+            display: none;
+        }
+    </style>
+</head>
+<body class="defect-density-page">
+
+<div class="nav-buttons">
+    <a href="index.html">🏠 Home</a>
+    <a href="afferent_efferent.html">🔍 Afferent & Efferent</a>
+    <a href="defect_density.html" class="active">📊 Defect Density Analysis</a>
+</div>
+
+<div class="container">
+    <h1>Defect Density Analysis</h1>
+    <p>Enter a GitHub Repository Link</p>
+    <input type="text" id="githubRepoInput" placeholder="https://github.com/owner/repository">
+    <button id="callApiButton">Analyze</button>
+    <div id="result"></div>
+</div>
+
+<script>
+    document.getElementById("callApiButton").addEventListener("click", async () => {
+        const repoUrl = document.getElementById("githubRepoInput").value.trim();
+        const resultDiv = document.getElementById("result");
+
+        if (!repoUrl) {
+            alert("Please enter a GitHub repository URL.");
+            return;
+        }
+
+        const apiUrl = `http://localhost:8080/api/defects/repo?url=${encodeURIComponent(repoUrl)}`;
+
+        try {
+            const response = await fetch(apiUrl);
+            const defectCount = await response.text();
+
+            if (isNaN(defectCount)) {
+                resultDiv.innerHTML = `<p style="color: red;">Error: ${defectCount}</p>`;
+            } else {
+                resultDiv.innerHTML = `<h3>Defect Count: ${defectCount}</h3>`;
+            }
+
+            resultDiv.style.display = "block";
+        } catch (error) {
+            resultDiv.innerHTML = `<p style="color: red;">Failed to fetch data.</p>`;
+            resultDiv.style.display = "block";
+        }
+    });
+</script>
+
+</body>
+</html>
