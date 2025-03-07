@@ -36,7 +36,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 100vh;
+    border-radius: 12px;
     text-align: center;
   }
   

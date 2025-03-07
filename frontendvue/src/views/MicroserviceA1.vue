@@ -78,11 +78,11 @@ export default {
 <style scoped>
 .afferent-efferent-page {
   font-family: "Roboto", Arial, sans-serif;
-  background-color: #007BFF;
+  background-color: #fdfdfd;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 100vh;
+  border-radius: 12px;
   text-align: center;
 }
 
