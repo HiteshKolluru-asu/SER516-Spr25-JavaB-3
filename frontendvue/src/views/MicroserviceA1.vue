@@ -6,6 +6,32 @@
         <input type="file" @change="handleFileUpload" accept=".zip" />
       </div>
       <button @click="analyzeFile">Analyze</button>
+
+      <!-- Display Analysis Results -->
+      <div v-if="resultVisible" class="result-box">
+        <h3>Analysis Results:</h3>
+        <p><strong>File:</strong> {{ fileName }}</p>
+
+        <!-- Afferent Coupling Results -->
+        <h4>Afferent Coupling</h4>
+        <ul>
+          <li v-for="(count, className) in afferentData" :key="className">
+            {{ className }}: {{ count }}
+          </li>
+        </ul>
+
+        <!-- Efferent Coupling Results -->
+        <h4>Efferent Coupling</h4>
+        <ul>
+          <li v-for="(count, className) in efferentData" :key="className">
+            {{ className }}: {{ count }}
+          </li>
+        </ul>
+
+        <!-- Instability Result -->
+        <h4>Instability Metric</h4>
+        <p><strong>Value:</strong> {{ instabilityResult !== null ? instabilityResult.toFixed(4) : "N/A" }}</p>
+      </div>
     </div>
   </div>
 </template>
@@ -14,7 +40,7 @@
 import { ref } from "vue";
 
 export default {
-  name: 'MicroserviceA1',
+  name: "MicroserviceA1",
 
   setup() {
     const selectedFile = ref(null);
@@ -22,9 +48,7 @@ export default {
     const fileName = ref("");
     const afferentData = ref({});
     const efferentData = ref({});
-    const afferentChartRef = ref(null);
-    const efferentChartRef = ref(null);
-    const resultMessage = ref("");
+    const instabilityResult = ref(null);
 
     const handleFileUpload = (event) => {
       selectedFile.value = event.target.files[0];
@@ -54,9 +78,104 @@ export default {
 
         console.log("API Responses:", { afferentResponse, efferentResponse });
 
+        // Save and update metrics
+        saveMetricsAfferent(afferentResponse, fileName.value);
+        saveMetricsEfferent(efferentResponse, fileName.value);
+
+        afferentData.value = afferentResponse; // Display Afferent Data
+        efferentData.value = efferentResponse; // Display Efferent Data
+
+        
+
+        // Calculate instability
+        const instabilityValue = calculateInstability(fileName.value);
+        if (instabilityValue !== null) {
+          saveMetricsInstability(instabilityValue, fileName.value);
+          instabilityResult.value = instabilityValue;
+        }
+
       } catch (error) {
         console.error("Error calling API:", error);
       }
+    };
+
+    // Function to calculate Instability Metric
+    const calculateInstability = (fileName) => {
+      const afferentMetrics = JSON.parse(localStorage.getItem("afferentMetricsHistory")) || {};
+      const efferentMetrics = JSON.parse(localStorage.getItem("efferentMetricsHistory")) || {};
+
+      if (!afferentMetrics[fileName] || !efferentMetrics[fileName]) {
+        alert("Both afferent and efferent coupling data are required to calculate instability.");
+        return null;
+      }
+
+      const latestAfferent = afferentMetrics[fileName][afferentMetrics[fileName].length - 1].couplingData;
+      const latestEfferent = efferentMetrics[fileName][efferentMetrics[fileName].length - 1].couplingData;
+
+      const Ca = Object.values(latestAfferent).reduce((sum, val) => sum + val, 0);
+      const Ce = Object.values(latestEfferent).reduce((sum, val) => sum + val, 0);
+
+      if (Ca + Ce === 0) {
+        alert("Cannot calculate instability metric when both afferent and efferent coupling are zero.");
+        return null;
+      }
+
+      return Ce / (Ca + Ce);
+    };
+
+    // Save Afferent Metrics
+    const saveMetricsAfferent = (data, fileName) => {
+      let allAfferent = JSON.parse(localStorage.getItem("afferentMetricsHistory")) || {};
+      if (!allAfferent[fileName]) {
+        allAfferent[fileName] = [];
+      }
+      allAfferent[fileName].push({
+        timestamp: new Date().toLocaleString(),
+        fileName,
+        couplingData: data,
+      });
+      if (allAfferent[fileName].length > 5) {
+        allAfferent[fileName].shift();
+      }
+      localStorage.setItem("afferentMetricsHistory", JSON.stringify(allAfferent));
+    };
+
+    // Save Efferent Metrics
+    const saveMetricsEfferent = (data, fileName) => {
+      let allEfferent = JSON.parse(localStorage.getItem("efferentMetricsHistory")) || {};
+      if (!allEfferent[fileName]) {
+        allEfferent[fileName] = [];
+      }
+      allEfferent[fileName].push({
+        timestamp: new Date().toLocaleString(),
+        fileName,
+        couplingData: data,
+      });
+      if (allEfferent[fileName].length > 5) {
+        allEfferent[fileName].shift();
+      }
+      localStorage.setItem("efferentMetricsHistory", JSON.stringify(allEfferent));
+    };
+
+    // Save Instability Metrics
+    const saveMetricsInstability = (instabilityValue, fileName) => {
+      let allInstability = JSON.parse(localStorage.getItem("instabilityMetricsHistory")) || {};
+
+      if (!allInstability[fileName]) {
+        allInstability[fileName] = [];
+      }
+
+      allInstability[fileName].push({
+        timestamp: new Date().toLocaleString(),
+        fileName,
+        instability: instabilityValue,
+      });
+
+      if (allInstability[fileName].length > 5) {
+        allInstability[fileName].shift();
+      }
+
+      localStorage.setItem("instabilityMetricsHistory", JSON.stringify(allInstability));
     };
 
     return {
@@ -65,9 +184,7 @@ export default {
       fileName,
       afferentData,
       efferentData,
-      afferentChartRef,
-      efferentChartRef,
-      resultMessage,
+      instabilityResult,
       handleFileUpload,
       analyzeFile,
     };
