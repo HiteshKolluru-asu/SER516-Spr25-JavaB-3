@@ -1,16 +1,20 @@
 package com.defectdensityapi.Controller;
 
-import com.defectdensityapi.util.GithubLinkOwnerRepoExtractor;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.defectdensityapi.util.LocApiAdapter;
-
 import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
+
+import com.defectdensityapi.util.GithubLinkOwnerRepoExtractor;
+import com.defectdensityapi.util.LocApiAdapter;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @CrossOrigin(origins = "*")
 
@@ -33,8 +37,13 @@ public class GitHubDefectController {
 
         try{
             String repoUrl = GithubLinkOwnerRepoExtractor.extractOwnerRepo(url1);
-            if(repoUrl == null){
-                return "URL is bad"; // something is wrong with the url
+            if (repoUrl == null) {
+                return "Error: Invalid GitHub repository URL format."; // More descriptive error message
+            }
+        
+            // Validate that the URL belongs to GitHub
+            if (!url1.startsWith("https://github.com/")) {
+                return "Error: Provided URL is not a valid GitHub repository.";
             }
 
             String url = "https://api.github.com/repos/" + repoUrl;
@@ -54,8 +63,14 @@ public class GitHubDefectController {
             return String.format("%.2f", defectDensityPerKLOC);
 
         }
-        catch(Exception e){
-            return e.getMessage();
+        catch (org.springframework.web.client.HttpClientErrorException.NotFound e) {
+            return "Error: Repository not found. Please check the GitHub URL.";
+        } 
+        catch (org.springframework.web.client.RestClientException e) {
+            return "Error: Unable to reach GitHub API. Please try again later.";
+        } 
+        catch (Exception e) {
+            return "Error: An unexpected error occurred - " + e.getMessage();
         }
     }
 
