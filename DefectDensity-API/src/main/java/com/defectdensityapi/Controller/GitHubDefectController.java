@@ -28,22 +28,6 @@ public class GitHubDefectController {
         this.locApiAdapter = locApiAdapter;
     }
 
-    // @GetMapping("/{owner}/{repo}")
-    // public int getDefectCount(@PathVariable String owner, @PathVariable String repo) throws Exception {
-    //     // Build the GitHub API endpoint for the repository metadata
-    //     String url = "https://api.github.com/repos/" + owner + "/" + repo;
-
-    //     // Retrieve the JSON response from GitHub
-    //     ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
-
-    //     // Parse the JSON to extract the "open_issues_count" field
-    //     JsonNode rootNode = objectMapper.readTree(response.getBody());
-    //     int openIssuesCount = rootNode.get("open_issues_count").asInt();
-
-    //     // Return the number of open issues in the repo
-    //     return openIssuesCount;
-    // }
-
     @GetMapping("/repo")
     public String getDefectRepoCount(@RequestParam(value="url") String url1) throws Exception {
 
