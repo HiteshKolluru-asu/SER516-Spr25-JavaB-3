@@ -4,12 +4,12 @@
     <!-- Navigation bar at the top -->
     <nav class="navbar">
       <!-- Logo or Title (optional) -->
-      <h2>Our Microservice's APP</h2>
+      <h2>Software Quality Metrics Dashboard</h2>
 
       <div class="nav-links">
-        <router-link to="/">Home</router-link>
-        <router-link to="/microservice-a1">Microservice A1</router-link>
-        <router-link to="/microservice-b1">Microservice B1</router-link>
+        <router-link to="/" class="nav-link">🏠 Home</router-link>
+        <router-link to="/microservice-a1" class="nav-link">📊 Afferent & Efferent</router-link>
+        <router-link to="/microservice-b1" class="nav-link">🔍 Defect Density Analysis</router-link>
       </div>
     </nav>
 
@@ -57,7 +57,8 @@ export default {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background-color: rgba(76, 72, 144, 0.85);
+  background-color: #004aad;
+  color: White;
   padding: 10px 20px;
   box-shadow: 0 2px 5px rgba(0,0,0,0.15);
 }
@@ -65,7 +66,7 @@ export default {
 .navbar h2 {
   margin: 0;
   font-weight: 600;
-  color: #333;
+  color: White;
 }
 
 /* Container for the navigation links on the right (or left) */
@@ -76,7 +77,7 @@ export default {
 
 /* Style for router-link elements */
 .nav-links a {
-  color: #333;
+  color: White;
   text-decoration: none;
   font-weight: 500;
   transition: color 0.3s;
