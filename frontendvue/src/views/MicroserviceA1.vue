@@ -61,6 +61,13 @@
           <canvas id="efferentChart"></canvas>
         </div>
 
+        <!-- Instability Result -->
+        <h4>Instability Metric</h4>
+        <p><strong>Current Value:</strong> {{ instabilityResult !== null ? instabilityResult.toFixed(4) : "N/A" }}</p>
+        <div class="chart-container">
+          <canvas id="instabilityChart"></canvas>
+        </div>
+        
         <!-- Chart Legend/Filter -->
         <div v-if="showFilterControls" class="chart-controls">
           <h4>Chart Controls</h4>
@@ -89,10 +96,6 @@
             </div>
           </div>
         </div>
-
-        <!-- Instability Result -->
-        <h4>Instability Metric</h4>
-        <p><strong>Value:</strong> {{ instabilityResult !== null ? instabilityResult.toFixed(4) : "N/A" }}</p>
       </div>
     </div>
   </div>
@@ -332,7 +335,7 @@ export default {
 
       localStorage.setItem("instabilityMetricsHistory", JSON.stringify(allInstability));
     };
-
+    
     const renderAfferentChart = (fileName) => {
       const allAfferent = JSON.parse(localStorage.getItem("afferentMetricsHistory")) || {};
       const history = allAfferent[fileName];
