@@ -61,6 +61,13 @@
           <canvas id="efferentChart"></canvas>
         </div>
 
+        <!-- Instability Result -->
+        <h4>Instability Metric</h4>
+        <p><strong>Current Value:</strong> {{ instabilityResult !== null ? instabilityResult.toFixed(4) : "N/A" }}</p>
+        <div class="chart-container">
+          <canvas id="instabilityChart"></canvas>
+        </div>
+
         <!-- Chart Legend/Filter -->
         <div v-if="showFilterControls" class="chart-controls">
           <h4>Chart Controls</h4>
@@ -89,10 +96,6 @@
             </div>
           </div>
         </div>
-
-        <!-- Instability Result -->
-        <h4>Instability Metric</h4>
-        <p><strong>Value:</strong> {{ instabilityResult !== null ? instabilityResult.toFixed(4) : "N/A" }}</p>
       </div>
     </div>
   </div>
@@ -118,6 +121,7 @@ export default {
 
     let afferentChartInstance = null;
     let efferentChartInstance = null;
+    let instabilityChartInstance = null;
 
     const filteredLegendItems = computed(() => {
       if (!searchFilter.value) return legendItems.value;
@@ -248,6 +252,7 @@ export default {
         setTimeout(() => {
           renderAfferentChart(fileName.value);
           renderEfferentChart(fileName.value);
+          renderInstabilityChart(fileName.value);
         }, 100);
       } catch (error) {
         console.error("Error calling API:", error);
@@ -332,6 +337,89 @@ export default {
 
       localStorage.setItem("instabilityMetricsHistory", JSON.stringify(allInstability));
     };
+    
+    // Render Instability Chart
+    const renderInstabilityChart = (fileName) => {
+      const allInstability = JSON.parse(localStorage.getItem("instabilityMetricsHistory")) || {};
+      const history = allInstability[fileName];
+
+      if (!history || history.length === 0) {
+        console.warn("No instability data found for this file.");
+        return;
+      }
+
+      const timestamps = history.map(h => h.timestamp);
+      const instabilityValues = history.map(h => h.instability);
+
+      const ctx = document.getElementById("instabilityChart");
+      if (!ctx) {
+        console.error("Instability chart canvas not found");
+        return;
+      }
+
+      if (instabilityChartInstance) {
+        instabilityChartInstance.destroy();
+      }
+
+      instabilityChartInstance = new Chart(ctx, {
+        type: "line",
+        data: {
+          labels: timestamps,
+          datasets: [{
+            label: "Instability Metric",
+            data: instabilityValues,
+            borderColor: "#FF6384",
+            backgroundColor: "rgba(255, 99, 132, 0.2)",
+            pointBackgroundColor: "#FF6384",
+            pointRadius: 5,
+            pointHoverRadius: 7,
+            tension: 0.1,
+            borderWidth: 2,
+            fill: true
+          }  ,{
+            label: 'Threshold (0.5)',
+            data: Array(timestamps.length).fill(0.5), // Create array of 5s for each timestamp
+            borderColor: 'blue',
+            backgroundColor: 'transparent',
+            pointRadius: 0, 
+            borderWidth: 2,
+            borderDash: [6, 6], // Dashed line
+            tension: 0,
+            fill: false,
+            order: -1, 
+            hidden: false
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: 1,
+              title: { display: true, text: "Instability (Ce / (Ca + Ce))" }
+            },
+            x: {
+              title: { display: true, text: "Time" }
+            }
+          },
+          plugins: {
+            legend: {
+              display: true,
+              position: 'top'
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return `Instability: ${context.raw.toFixed(4)}`;
+                }
+              }
+            }
+          }
+        }
+      });
+    };
+
 
     const renderAfferentChart = (fileName) => {
       const allAfferent = JSON.parse(localStorage.getItem("afferentMetricsHistory")) || {};
@@ -373,6 +461,23 @@ export default {
         borderWidth: classNamesArray.length > 20 ? 1 : 2,
         hidden: index >= 10 && classNamesArray.length > 15 // Hide datasets beyond first 10 if there are many
       }));
+
+      const thresholdDataset = {
+        label: 'Threshold (5)',
+        data: Array(timestamps.length).fill(5), 
+        borderColor: 'red',
+        backgroundColor: 'transparent',
+        pointRadius: 0,
+        borderWidth: 2,
+        borderDash: [6, 6],
+        tension: 0,
+        fill: false,
+        order: -1, 
+      
+        hidden: false
+      };
+
+datasets.push(thresholdDataset);
 
       const ctx = document.getElementById("afferentChart");
       if (!ctx) {
@@ -429,6 +534,7 @@ export default {
                 }
               }
             }
+            
           }
         }
       });
@@ -479,6 +585,21 @@ export default {
         hidden: index >= 10 && classNamesArray.length > 15 // Hide datasets beyond first 10 if there are many
       }));
 
+      const thresholdDataset = {
+        label: 'Threshold (5)',
+        data: Array(timestamps.length).fill(5), // Create array of 5s for each timestamp
+        borderColor: 'red',
+        backgroundColor: 'transparent',
+        pointRadius: 0, 
+        borderWidth: 2,
+        borderDash: [6, 6], 
+        tension: 0,
+        fill: false,
+        order: -1, 
+        hidden: false
+      };
+
+datasets.push(thresholdDataset);
       const ctx = document.getElementById("efferentChart");
       if (!ctx) {
         console.error("Efferent chart canvas not found");
