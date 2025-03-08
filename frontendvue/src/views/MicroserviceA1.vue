@@ -67,7 +67,7 @@
         <div class="chart-container">
           <canvas id="instabilityChart"></canvas>
         </div>
-        
+
         <!-- Chart Legend/Filter -->
         <div v-if="showFilterControls" class="chart-controls">
           <h4>Chart Controls</h4>
@@ -121,6 +121,7 @@ export default {
 
     let afferentChartInstance = null;
     let efferentChartInstance = null;
+    let instabilityChartInstance = null;
 
     const filteredLegendItems = computed(() => {
       if (!searchFilter.value) return legendItems.value;
@@ -251,6 +252,7 @@ export default {
         setTimeout(() => {
           renderAfferentChart(fileName.value);
           renderEfferentChart(fileName.value);
+          renderInstabilityChart(fileName.value);
         }, 100);
       } catch (error) {
         console.error("Error calling API:", error);
