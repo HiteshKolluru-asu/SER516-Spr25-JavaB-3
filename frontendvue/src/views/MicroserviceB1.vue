@@ -61,11 +61,13 @@ export default {
           }
 
           this.resultMessage = `
+
             <h3>Defect Density: ${count}</h3>
             ${statusMessage}
             <div id="chart-container" style="width: 100%; min-height: 200px;">
               <canvas id="defectDensityChart" width="400" height="200"></canvas>
             </div>
+
           `;
 
           this.saveMetric(this.repoUrl, count);
