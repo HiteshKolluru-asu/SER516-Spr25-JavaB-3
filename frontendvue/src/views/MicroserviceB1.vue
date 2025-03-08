@@ -54,10 +54,6 @@ export default {
 
           if (count === 0) {
             statusMessage = '<p style="color: green;">✓ No defects found in this repository!</p>';
-          } else if (count < 200) {
-            statusMessage = `<p style="color: orange;">Found ${count} defects</p>`;
-          } else {
-            statusMessage = `<p style="color: red;">Warning: High defect count (${count})</p>`;
           }
 
           this.resultMessage = `
