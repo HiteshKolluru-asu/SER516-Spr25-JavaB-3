@@ -11,8 +11,6 @@
         placeholder="https://github.com/owner/repository"
       />
       <button @click="analyzeRepo">Analyze</button>
-
-      <!-- Results display (hidden until we have something to show) -->
       <div
         id="result"
         v-html="resultMessage"
@@ -30,12 +28,11 @@ export default {
   data() {
     return {
       repoUrl: '',
-      resultMessage: '',      // Holds the HTML for the result container
-      chartInstance: null     // We'll store our Chart.js instance here
+      resultMessage: '',  
+      chartInstance: null     
     };
   },
   methods: {
-    // Primary function: calls the API, parses the result, updates UI
     async analyzeRepo() {
       if (!this.repoUrl.trim()) {
         alert('Please enter a GitHub repository URL.');
@@ -45,7 +42,7 @@ export default {
       const apiUrl = `http://localhost:8080/api/defects/repo?url=${encodeURIComponent(this.repoUrl)}`;
       try {
         const response = await fetch(apiUrl);
-        const defectCount = await response.text(); // Plain text response
+        const defectCount = await response.text(); 
 
         // If it's not a numeric value, show an error
         if (isNaN(defectCount)) {
@@ -56,10 +53,7 @@ export default {
             <canvas id="defectDensityChart" width="400" height="200"></canvas>
           `;
 
-          // Store the numeric count in localStorage (keyed by repoUrl)
           this.saveMetric(this.repoUrl, Number(defectCount));
-
-          // Wait for the DOM to update, then render the chart
           this.$nextTick(() => {
             this.renderChart();
           });
@@ -69,33 +63,27 @@ export default {
       }
     },
 
-    // Save the defect count in localStorage, keyed by repository URL
+    // Saving the defect count in localStorage, keyed by repository URL
     saveMetric(url, count) {
-      // "defectMetrics" in localStorage: { [repoUrl]: [{ time, count }, ...], ... }
       let defectMetrics = JSON.parse(localStorage.getItem('defectMetrics')) || {};
-
-      // Get existing entries for this URL (or start fresh)
       let entries = defectMetrics[url] || [];
 
-      // Add the new record
       entries.push({
         time: new Date().toLocaleString(),
         count
       });
 
-      // Keep only the last 5
+
       if (entries.length > 5) {
         entries.shift();
       }
-
-      // Save back
       defectMetrics[url] = entries;
       localStorage.setItem('defectMetrics', JSON.stringify(defectMetrics));
     },
 
-    // Read the stored counts from localStorage and plot them in a bar chart
+
     renderChart() {
-      // Destroy any existing chart to avoid duplicates
+
       if (this.chartInstance) {
         this.chartInstance.destroy();
       }
@@ -104,21 +92,14 @@ export default {
       const stored = JSON.parse(localStorage.getItem('defectMetrics')) || {};
       const entries = stored[this.repoUrl] || [];
 
-      // If no data for this URL yet, nothing to chart
       if (!entries.length) return;
 
-      // Extract raw labels (timestamps) and data (defect counts)
       const rawLabels = entries.map(e => e.time);
       const rawData = entries.map(e => e.count);
 
-      // Define your threshold
-      const thresholdValue = 200; // Adjust as needed
+      const thresholdValue = 200; 
 
-      // --- KEY TRICK ---
-      // Insert an empty label at the beginning and end so the line extends beyond the bars
-      // The bar dataset uses 'null' for these two extra points so no extra bars appear,
-      // while the threshold line uses the thresholdValue for the entire array length.
-      const labels = ['', ...rawLabels, '']; // empty label on each side
+      const labels = ['', ...rawLabels, ''];
       const barData = [null, ...rawData, null];
       const lineData = labels.map(() => thresholdValue); // same length as labels
 
@@ -127,14 +108,12 @@ export default {
 
       const ctx = canvas.getContext('2d');
 
-      // Create the chart
       this.chartInstance = new Chart(ctx, {
-        type: 'bar', // base chart type
+        type: 'bar', 
         data: {
           labels,
           datasets: [
             {
-              // 1) Bar dataset for defect counts
               label: 'Defect Count',
               data: barData,
               backgroundColor: 'rgba(75, 192, 192, 0.7)',
@@ -143,16 +122,15 @@ export default {
               borderRadius: 8
             },
             {
-              // 2) Line dataset for the threshold
               label: 'Critical Defect Threshold',
               data: lineData,
               type: 'line',
               borderColor: 'red',
-              borderDash: [5, 5],   // dotted line
+              borderDash: [5, 5],   
               borderWidth: 2,
               fill: false,
-              pointRadius: 0,       // no points
-              spanGaps: true        // ensure the line spans any null values
+              pointRadius: 0,       
+              spanGaps: true        
             }
           ]
         },
@@ -160,14 +138,10 @@ export default {
           responsive: true,
           scales: {
             x: {
-              // offset: true adds some space on the edges of the x-axis
-              // so the bars/line don't sit exactly at the chart boundary.
               offset: true
             },
             y: {
               beginAtZero: true
-              // Optionally ensure the threshold is visible if it's high:
-              // suggestedMax: thresholdValue + 50
             }
           }
         }
@@ -192,7 +166,7 @@ export default {
   border-radius: 18px;
   text-align: center;
   position: relative;
-  overflow: hidden; /* Prevent whole page scrolling */
+  overflow: hidden; 
 }
 
 .container {
@@ -202,8 +176,8 @@ export default {
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
   max-width: 700px;
   width: 85%;
-  max-height: 80vh; /* Limit height */
-  overflow-y: auto; /* Scroll inside container if needed */
+  max-height: 80vh;
+  overflow-y: auto; 
 }
 
 h1 {
