@@ -8,8 +8,8 @@
 
       <div class="nav-links">
         <router-link to="/" class="nav-link">🏠 Home</router-link>
-        <router-link to="/microservice-a1" class="nav-link">📊 Afferent & Efferent</router-link>
-        <router-link to="/microservice-b1" class="nav-link">🔍 Defect Density Analysis</router-link>
+        <router-link to="/afferent-efferent" class="nav-link">📊 Afferent & Efferent</router-link>
+        <router-link to="/defect-density" class="nav-link">🔍 Defect Density Analysis</router-link>
       </div>
     </nav>
 
