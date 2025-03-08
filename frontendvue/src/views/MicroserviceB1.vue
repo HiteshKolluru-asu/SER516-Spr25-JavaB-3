@@ -28,8 +28,8 @@ export default {
   data() {
     return {
       repoUrl: '',
-      resultMessage: '',  
-      chartInstance: null     
+      resultMessage: '',
+      chartInstance: null
     };
   },
   methods: {
@@ -42,21 +42,38 @@ export default {
       const apiUrl = `http://localhost:8080/api/defects/repo?url=${encodeURIComponent(this.repoUrl)}`;
       try {
         const response = await fetch(apiUrl);
-        const defectCount = await response.text(); 
+        const defectCount = await response.text();
 
         // If it's not a numeric value, show an error
         if (isNaN(defectCount)) {
           this.resultMessage = `<p style="color: red;">Error: ${defectCount}</p>`;
         } else {
+          // Create result message including when count is zero
+          const count = Number(defectCount);
+          let statusMessage = '';
+
+          if (count === 0) {
+            statusMessage = '<p style="color: green;">✓ No defects found in this repository!</p>';
+          } else if (count < 200) {
+            statusMessage = `<p style="color: orange;">Found ${count} defects</p>`;
+          } else {
+            statusMessage = `<p style="color: red;">Warning: High defect count (${count})</p>`;
+          }
+
           this.resultMessage = `
-            <h3>Defect Count: ${defectCount}</h3>
-            <canvas id="defectDensityChart" width="400" height="200"></canvas>
+            <h3>Defect Density: ${count}</h3>
+            ${statusMessage}
+            <div id="chart-container" style="width: 100%; min-height: 200px;">
+              <canvas id="defectDensityChart" width="400" height="200"></canvas>
+            </div>
           `;
 
-          this.saveMetric(this.repoUrl, Number(defectCount));
-          this.$nextTick(() => {
+          this.saveMetric(this.repoUrl, count);
+
+          // Allow DOM to update
+          setTimeout(() => {
             this.renderChart();
-          });
+          }, 100);
         }
       } catch (error) {
         this.resultMessage = `<p style="color: red;">Failed to fetch data: ${error}</p>`;
@@ -73,7 +90,6 @@ export default {
         count
       });
 
-
       if (entries.length > 5) {
         entries.shift();
       }
@@ -81,74 +97,115 @@ export default {
       localStorage.setItem('defectMetrics', JSON.stringify(defectMetrics));
     },
 
-
     renderChart() {
-
+      // Make sure to clean up any existing chart instance
       if (this.chartInstance) {
         this.chartInstance.destroy();
+        this.chartInstance = null;
       }
 
-      // Read from localStorage
       const stored = JSON.parse(localStorage.getItem('defectMetrics')) || {};
       const entries = stored[this.repoUrl] || [];
 
-      if (!entries.length) return;
+      // If no entries, create a default entry with the current time and 0 count
+      if (!entries.length) {
+        entries.push({
+          time: new Date().toLocaleString(),
+          count: 0
+        });
+      }
 
       const rawLabels = entries.map(e => e.time);
       const rawData = entries.map(e => e.count);
 
-      const thresholdValue = 200; 
+      const thresholdValue = 200;
 
       const labels = ['', ...rawLabels, ''];
       const barData = [null, ...rawData, null];
-      const lineData = labels.map(() => thresholdValue); // same length as labels
+      const lineData = labels.map(() => thresholdValue);
 
       const canvas = document.getElementById('defectDensityChart');
-      if (!canvas) return;
+      if (!canvas) {
+        console.error('Canvas element not found');
+        return;
+      }
 
-      const ctx = canvas.getContext('2d');
+      try {
+        const ctx = canvas.getContext('2d');
+        const maxValue = Math.max(250, ...rawData) * 1.2;
 
-      this.chartInstance = new Chart(ctx, {
-        type: 'bar', 
-        data: {
-          labels,
-          datasets: [
-            {
-              label: 'Defect Count',
-              data: barData,
-              backgroundColor: 'rgba(75, 192, 192, 0.7)',
-              borderColor: 'rgba(75, 192, 192, 1)',
-              borderWidth: 1,
-              borderRadius: 8
+        this.chartInstance = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels,
+            datasets: [
+              {
+                label: 'Defect Count',
+                data: barData,
+                backgroundColor: function(context) {
+                  if (!context.raw && context.raw !== 0) return 'rgba(75, 192, 192, 0.7)';
+                  const value = context.raw;
+                  if (value === 0) return 'rgba(0, 200, 0, 0.7)';
+                  return value < 200 ? 'rgba(75, 192, 192, 0.7)' : 'rgba(255, 99, 132, 0.7)';
+                },
+                borderColor: function(context) {
+                  if (!context.raw && context.raw !== 0) return 'rgba(75, 192, 192, 1)';
+                  const value = context.raw;
+                  if (value === 0) return 'rgba(0, 200, 0, 1)';
+                  return value < 200 ? 'rgba(75, 192, 192, 1)' : 'rgba(255, 99, 132, 1)';
+                },
+                borderWidth: 1,
+                borderRadius: 8
+              },
+              {
+                label: 'Critical Defect Threshold',
+                data: lineData,
+                type: 'line',
+                borderColor: 'red',
+                borderDash: [5, 5],
+                borderWidth: 2,
+                fill: false,
+                pointRadius: 0,
+                spanGaps: true
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              x: {
+                offset: true
+              },
+              y: {
+                beginAtZero: true,
+                suggestedMax: maxValue
+              }
             },
-            {
-              label: 'Critical Defect Threshold',
-              data: lineData,
-              type: 'line',
-              borderColor: 'red',
-              borderDash: [5, 5],   
-              borderWidth: 2,
-              fill: false,
-              pointRadius: 0,       
-              spanGaps: true        
-            }
-          ]
-        },
-        options: {
-          responsive: true,
-          scales: {
-            x: {
-              offset: true
-            },
-            y: {
-              beginAtZero: true
+            plugins: {
+              tooltip: {
+                callbacks: {
+                  title: function(tooltipItems) {
+                    return tooltipItems[0].label || 'No date';
+                  },
+                  label: function(context) {
+                    if (context.dataset.label === 'Defect Count') {
+                      const value = context.raw;
+                      if (value === null) return '';
+                      return value === 0 ? 'No defects' : `${value} defects`;
+                    }
+                    return `Threshold: ${context.raw}`;
+                  }
+                }
+              }
             }
           }
-        }
-      });
+        });
+      } catch (error) {
+        console.error('Error creating chart:', error);
+        this.resultMessage += `<p style="color: red;">Error creating chart: ${error.message}</p>`;
+      }
     }
-
-
   }
 };
 </script>
@@ -166,7 +223,7 @@ export default {
   border-radius: 18px;
   text-align: center;
   position: relative;
-  overflow: hidden; 
+  overflow: hidden;
 }
 
 .container {
@@ -177,7 +234,7 @@ export default {
   max-width: 700px;
   width: 85%;
   max-height: 80vh;
-  overflow-y: auto; 
+  overflow-y: auto;
 }
 
 h1 {
