@@ -49,7 +49,7 @@ export default {
           this.resultMessage = `<p style="color: red;">Error: ${defectCount}</p>`;
         } else {
           this.resultMessage = `
-            <h3>Defect Count: ${defectCount}</h3>
+            <h3>Defect Density: ${defectCount}</h3>
             <canvas id="defectDensityChart" width="400" height="200"></canvas>
           `;
 

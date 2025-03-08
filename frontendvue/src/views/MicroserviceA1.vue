@@ -376,6 +376,18 @@ export default {
             tension: 0.1,
             borderWidth: 2,
             fill: true
+          }  ,{
+            label: 'Threshold (0.5)',
+            data: Array(timestamps.length).fill(0.5), // Create array of 5s for each timestamp
+            borderColor: 'blue',
+            backgroundColor: 'transparent',
+            pointRadius: 0, 
+            borderWidth: 2,
+            borderDash: [6, 6], // Dashed line
+            tension: 0,
+            fill: false,
+            order: -1, 
+            hidden: false
           }]
         },
         options: {
@@ -402,30 +414,13 @@ export default {
                   return `Instability: ${context.raw.toFixed(4)}`;
                 }
               }
-            },
-            annotation: {
-              annotations: {
-                thresholdLine: {
-                  type: 'line',
-                  yMin: 0.5,
-                  yMax: 0.5,
-                  borderColor: 'rgba(255, 0, 0, 0.5)',
-                  borderWidth: 2,
-                  borderDash: [6, 6],
-                  label: {
-                    content: 'Threshold (0.5)',
-                    enabled: true,
-                    position: 'start'
-                  }
-                }
-              }
             }
           }
         }
       });
     };
 
-    
+
     const renderAfferentChart = (fileName) => {
       const allAfferent = JSON.parse(localStorage.getItem("afferentMetricsHistory")) || {};
       const history = allAfferent[fileName];
@@ -466,6 +461,23 @@ export default {
         borderWidth: classNamesArray.length > 20 ? 1 : 2,
         hidden: index >= 10 && classNamesArray.length > 15 // Hide datasets beyond first 10 if there are many
       }));
+
+      const thresholdDataset = {
+        label: 'Threshold (5)',
+        data: Array(timestamps.length).fill(5), 
+        borderColor: 'red',
+        backgroundColor: 'transparent',
+        pointRadius: 0,
+        borderWidth: 2,
+        borderDash: [6, 6],
+        tension: 0,
+        fill: false,
+        order: -1, 
+      
+        hidden: false
+      };
+
+datasets.push(thresholdDataset);
 
       const ctx = document.getElementById("afferentChart");
       if (!ctx) {
@@ -522,6 +534,7 @@ export default {
                 }
               }
             }
+            
           }
         }
       });
@@ -572,6 +585,21 @@ export default {
         hidden: index >= 10 && classNamesArray.length > 15 // Hide datasets beyond first 10 if there are many
       }));
 
+      const thresholdDataset = {
+        label: 'Threshold (5)',
+        data: Array(timestamps.length).fill(5), // Create array of 5s for each timestamp
+        borderColor: 'red',
+        backgroundColor: 'transparent',
+        pointRadius: 0, 
+        borderWidth: 2,
+        borderDash: [6, 6], 
+        tension: 0,
+        fill: false,
+        order: -1, 
+        hidden: false
+      };
+
+datasets.push(thresholdDataset);
       const ctx = document.getElementById("efferentChart");
       if (!ctx) {
         console.error("Efferent chart canvas not found");
