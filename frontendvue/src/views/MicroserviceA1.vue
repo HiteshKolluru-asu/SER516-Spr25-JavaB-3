@@ -338,6 +338,94 @@ export default {
       localStorage.setItem("instabilityMetricsHistory", JSON.stringify(allInstability));
     };
     
+    // Render Instability Chart
+    const renderInstabilityChart = (fileName) => {
+      const allInstability = JSON.parse(localStorage.getItem("instabilityMetricsHistory")) || {};
+      const history = allInstability[fileName];
+
+      if (!history || history.length === 0) {
+        console.warn("No instability data found for this file.");
+        return;
+      }
+
+      const timestamps = history.map(h => h.timestamp);
+      const instabilityValues = history.map(h => h.instability);
+
+      const ctx = document.getElementById("instabilityChart");
+      if (!ctx) {
+        console.error("Instability chart canvas not found");
+        return;
+      }
+
+      if (instabilityChartInstance) {
+        instabilityChartInstance.destroy();
+      }
+
+      instabilityChartInstance = new Chart(ctx, {
+        type: "line",
+        data: {
+          labels: timestamps,
+          datasets: [{
+            label: "Instability Metric",
+            data: instabilityValues,
+            borderColor: "#FF6384",
+            backgroundColor: "rgba(255, 99, 132, 0.2)",
+            pointBackgroundColor: "#FF6384",
+            pointRadius: 5,
+            pointHoverRadius: 7,
+            tension: 0.1,
+            borderWidth: 2,
+            fill: true
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: 1,
+              title: { display: true, text: "Instability (Ce / (Ca + Ce))" }
+            },
+            x: {
+              title: { display: true, text: "Time" }
+            }
+          },
+          plugins: {
+            legend: {
+              display: true,
+              position: 'top'
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return `Instability: ${context.raw.toFixed(4)}`;
+                }
+              }
+            },
+            annotation: {
+              annotations: {
+                thresholdLine: {
+                  type: 'line',
+                  yMin: 0.5,
+                  yMax: 0.5,
+                  borderColor: 'rgba(255, 0, 0, 0.5)',
+                  borderWidth: 2,
+                  borderDash: [6, 6],
+                  label: {
+                    content: 'Threshold (0.5)',
+                    enabled: true,
+                    position: 'start'
+                  }
+                }
+              }
+            }
+          }
+        }
+      });
+    };
+
+    
     const renderAfferentChart = (fileName) => {
       const allAfferent = JSON.parse(localStorage.getItem("afferentMetricsHistory")) || {};
       const history = allAfferent[fileName];
