@@ -14,6 +14,14 @@ npm run serve
 ```
 npm run build
 ```
+### Install a static server
+```
+npm install -g serve
+```
+### Serve the dist folder
+```
+serve -s dist
+```
 
 ### Lints and fixes files
 ```

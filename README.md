@@ -14,7 +14,7 @@ The Software Quality Metrics project is a Java-based application designed to ana
 * **Afferent Coupling (Ca):** Measures how many other classes depend on a given class.
 * **Efferent Coupling (Ce):** Measures how many external classes a given class depends on.
 * **Defect Density:** Calculates the number of defects per lines of code to assess software reliability.
-* **Instability Metric(I):** Measures how susceptible a software package is, to changes based on its outgoing dependencies. It is calculated using both Ce and Ca. 
+* **Instability Metric(I):** Measures how susceptible a software package is, to changes based on its outgoing dependencies. It is calculated using both Ce and Ca.
 
 * This project enables developers to upload ZIP files containing Java code, analyze quality metrics, and track file history. It also supports benchmark values for quality evaluation.
 
@@ -28,6 +28,8 @@ Before setting up the project, ensure you have the following installed:
 * **spring-boot 3.2+**
 * **Docker & Docker Compose**
 * **Git**
+* **Vue.js (https://v3.ru.vuejs.org/guide/installation.html)**
+* **npm (https://docs.npmjs.com/downloading-and-installing-node-js-and-npm)**
 * **A modern web browser (Chrome, Firefox, Edge, etc.)**
 
 ## 3. Project Setup and Execution
@@ -52,15 +54,25 @@ Step-3. **Building and Running the Application:**
    ```bash
    docker-compose up --build
    ```
+Step-4. **Install npm:**
+   ```
+   cd frontendvue
+   ```
+   ```
+   npm install
+   ```
+Step-5. **To Run the Application:**
+   ```
+   npm run serve
+   ```
+- Use the localhost URL appears after running above command
 
-Step-4. **To Run the Application:**
-   ```
-   open frontend/index.html
-   ```
-Step-5 **Uploading Input Value**
-    
-- The expected input is a ZIP file containing Java source code.
+Step-6 **Uploading Input Value**
+
+- The expected input is a ZIP file containing Java source code for Afferent and Efferent coupling analysis.
 - You can use sample test files located in the TestData folder for testing.
+- The expected input is github repository URL which has defects data for getting defect density analysis.
+- Please use below sample github urls provided under TestData folder.
 
 ## 4. Application Features
 ### 4.1 Quality Metrics Computation
@@ -69,8 +81,8 @@ The system calculates:
 
 * Afferent Coupling (Ca): Measures the number of incoming dependencies. Benchmark Value: 5
 * Efferent Coupling (Ce): Measures the number of outgoing dependencies. Benchmark Value: 5
-* Instability metric (I) : Measures how susceptible a software package is, to changes based on its outgoing dependencies.
-* Defect Density: Number of defects per lines of code. Benchmark Value: 10
+* Instability metric (I) : Measures how susceptible a software package is, to changes based on its outgoing dependencies. Benchmark Value: 0.5
+* Defect Density: Number of defects per lines of code. Benchmark Value: 200
 * Visualization of the metrics: Line graph for Afferent, Efferent and Instability metrics. Bar Chart for Defect Density.
 * Added a Benchmark value for each metric and graph shows the metrics against this idealized baseline(benchmark) over time.
 
@@ -92,10 +104,11 @@ Refer to each README.md for full API details.
 - All development is done in **task branches** and **userstory branches**
 - Completed stories are merged into **Period branches** (`Period-YY`).
 - Before the period ends, `Period-YY` is merged into `main`.
-- Releases are tagged as **`Period-YY-release`**.
+- Releases are tagged as **`Period-YY-release-v"majorversionnumber"."minorversionnumber"`**.
 
 ### 6.2 Code Quality
 
 - **Unit Testing:** JUnit is used for test coverage.
 - **CI/CD:** GitHub Actions runs automated tests on each commit.
 - **Code Style:** Follows standard Java coding conventions.
+
