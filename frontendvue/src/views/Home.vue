@@ -6,10 +6,10 @@
         <div class="option-box">
           <!-- Replace these links with whatever microservice routes you have configured -->
           <div class="box">
-            <router-link to="/microservice-a1">📊 Afferent &amp; Efferent Coupling</router-link>
+            <router-link to="/afferent-efferent">📊 Afferent &amp; Efferent Coupling</router-link>
           </div>
           <div class="box">
-            <router-link to="/microservice-b1">🛠️ Defect Density Analysis</router-link>
+            <router-link to="/defect-density">🛠️ Defect Density Analysis</router-link>
           </div>
         </div>
       </div>
