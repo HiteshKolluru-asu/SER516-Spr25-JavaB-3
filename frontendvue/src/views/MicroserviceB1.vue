@@ -1,6 +1,5 @@
 <template>
   <div class="defect-density-page">
-    <!-- Main Container -->
     <div class="container">
       <h1>Defect Density Analysis</h1>
       <p>Enter a GitHub Repository Link</p>
@@ -11,30 +10,30 @@
         v-model="repoUrl"
         placeholder="https://github.com/owner/repository"
       />
-
-      <!-- Button triggers API call -->
       <button @click="analyzeRepo">Analyze</button>
-
-      <!-- Results area (only shown if there's a message) -->
-      <div id="result" v-html="resultMessage" v-show="resultMessage !== ''"></div>
+      <div
+        id="result"
+        v-html="resultMessage"
+        v-show="resultMessage !== ''"
+      ></div>
     </div>
   </div>
 </template>
 
 <script>
-// If you actually need Chart.js or chartjs-plugin-annotation, install/import them
-// and integrate them into Vue as desired. Otherwise, you can remove those script references.
+import Chart from 'chart.js/auto';
+
 export default {
   name: 'DefectDensityAnalysis',
   data() {
     return {
       repoUrl: '',
-      resultMessage: '', // Will hold API results or error message
+      resultMessage: '',  
+      chartInstance: null     
     };
   },
   methods: {
     async analyzeRepo() {
-      // Basic validation
       if (!this.repoUrl.trim()) {
         alert('Please enter a GitHub repository URL.');
         return;
@@ -43,40 +42,133 @@ export default {
       const apiUrl = `http://localhost:8080/api/defects/repo?url=${encodeURIComponent(this.repoUrl)}`;
       try {
         const response = await fetch(apiUrl);
-        const defectCount = await response.text();
+        const defectCount = await response.text(); 
 
+        // If it's not a numeric value, show an error
         if (isNaN(defectCount)) {
-          // API returned some error string
           this.resultMessage = `<p style="color: red;">Error: ${defectCount}</p>`;
         } else {
-          // API returned a numeric result
-          this.resultMessage = `<h3>Defect Count: ${defectCount}</h3>`;
+          this.resultMessage = `
+            <h3>Defect Count: ${defectCount}</h3>
+            <canvas id="defectDensityChart" width="400" height="200"></canvas>
+          `;
+
+          this.saveMetric(this.repoUrl, Number(defectCount));
+          this.$nextTick(() => {
+            this.renderChart();
+          });
         }
       } catch (error) {
-        this.resultMessage = `<p style="color: red;">Failed to fetch data.</p>`;
+        this.resultMessage = `<p style="color: red;">Failed to fetch data: ${error}</p>`;
       }
     },
-  },
+
+    // Saving the defect count in localStorage, keyed by repository URL
+    saveMetric(url, count) {
+      let defectMetrics = JSON.parse(localStorage.getItem('defectMetrics')) || {};
+      let entries = defectMetrics[url] || [];
+
+      entries.push({
+        time: new Date().toLocaleString(),
+        count
+      });
+
+
+      if (entries.length > 5) {
+        entries.shift();
+      }
+      defectMetrics[url] = entries;
+      localStorage.setItem('defectMetrics', JSON.stringify(defectMetrics));
+    },
+
+
+    renderChart() {
+
+      if (this.chartInstance) {
+        this.chartInstance.destroy();
+      }
+
+      // Read from localStorage
+      const stored = JSON.parse(localStorage.getItem('defectMetrics')) || {};
+      const entries = stored[this.repoUrl] || [];
+
+      if (!entries.length) return;
+
+      const rawLabels = entries.map(e => e.time);
+      const rawData = entries.map(e => e.count);
+
+      const thresholdValue = 200; 
+
+      const labels = ['', ...rawLabels, ''];
+      const barData = [null, ...rawData, null];
+      const lineData = labels.map(() => thresholdValue); // same length as labels
+
+      const canvas = document.getElementById('defectDensityChart');
+      if (!canvas) return;
+
+      const ctx = canvas.getContext('2d');
+
+      this.chartInstance = new Chart(ctx, {
+        type: 'bar', 
+        data: {
+          labels,
+          datasets: [
+            {
+              label: 'Defect Count',
+              data: barData,
+              backgroundColor: 'rgba(75, 192, 192, 0.7)',
+              borderColor: 'rgba(75, 192, 192, 1)',
+              borderWidth: 1,
+              borderRadius: 8
+            },
+            {
+              label: 'Critical Defect Threshold',
+              data: lineData,
+              type: 'line',
+              borderColor: 'red',
+              borderDash: [5, 5],   
+              borderWidth: 2,
+              fill: false,
+              pointRadius: 0,       
+              spanGaps: true        
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            x: {
+              offset: true
+            },
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      });
+    }
+
+
+  }
 };
 </script>
 
 <style scoped>
-/* Match your original styling, adapted for a Vue component */
 .defect-density-page {
   font-family: 'Roboto', Arial, sans-serif;
-  background: #fdfdfd;
-  margin: 0;
+  background: #ffffff;
   padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  max-width: 700px;
+  margin: 0 auto;
   border-radius: 18px;
   text-align: center;
   position: relative;
-  overflow: hidden; /* Prevent whole page scrolling */
+  overflow: hidden; 
 }
 
-/* Analysis Box with Scrolling */
 .container {
   background: rgba(255, 255, 255, 0.98);
   padding: 50px;
@@ -84,8 +176,8 @@ export default {
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
   max-width: 700px;
   width: 85%;
-  max-height: 80vh; /* Limit height */
-  overflow-y: auto; /* Scroll inside container if needed */
+  max-height: 80vh;
+  overflow-y: auto; 
 }
 
 h1 {
@@ -137,6 +229,6 @@ button:hover {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   width: 100%;
   text-align: center;
-  display: block; /* Controlled via v-show */
+  display: block;
 }
 </style>
